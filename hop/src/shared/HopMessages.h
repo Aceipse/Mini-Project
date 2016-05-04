@@ -2,20 +2,20 @@
 #define HOP_MESSAGES_H
 
 //Messages for protocol
-typedef nx_struct handshake_send {
-nx_uint8_t message_id;
-nx_uint8_t sender_id;
-nx_uint8_t receiver_id;
-} handshake_send;
+typedef nx_struct HandshakeSend {
+  nx_uint16_t message_id;
+  nx_uint16_t sender_id;
+  nx_uint16_t receiver_id;
+} HandshakeSend;
 
-typedef nx_struct handshake_receive {
-	/*message\_id
-sender\_id
-receiver\_id
-lqi
-rssi
-tx*/
-} handshake_receive;
+typedef nx_struct HandshakeReceive {
+  nx_uint16_t message_id;
+  nx_uint16_t sender_id;
+  nx_uint16_t receiver_id;
+  nx_uint16_t lqi;
+  nx_uint16_t rssi;
+  nx_uint16_t tx;
+} HandshakeReceive;
 
 typedef  nx_struct data_send {/*
  * message\_id
