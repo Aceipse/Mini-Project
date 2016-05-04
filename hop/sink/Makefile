@@ -1,0 +1,2 @@
+COMPONENT=hopSink
+include $(MAKERULES)

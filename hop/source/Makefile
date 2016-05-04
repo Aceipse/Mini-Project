@@ -1,0 +1,2 @@
+COMPONENT=hopSource
+include $(MAKERULES)
