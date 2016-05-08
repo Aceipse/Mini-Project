@@ -1,2 +1,3 @@
-COMPONENT=hopSink
-include $(MAKERULES)
+COMPONENT=HopSinkAppC
+CFLAGS += -I$(TOSDIR)/lib/printf
+include $(MAKERULES) 
