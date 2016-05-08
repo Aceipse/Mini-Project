@@ -1,5 +1,7 @@
- #include <Timer.h>
- #include "SourceNode.h"
+#include <Timer.h>
+#include "SourceNode.h"
+#include "Shared.h"
+#include "HopMessages.h"
  
  configuration SourceNodeAppC {
  }
