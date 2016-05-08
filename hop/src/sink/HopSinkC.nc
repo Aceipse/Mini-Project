@@ -35,10 +35,6 @@ bool busy = FALSE;
 	event void AMControl.startDone(error_t error){
 		// TODO Auto-generated method stub
 		
-		
-    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(HandshakeSend)) == SUCCESS) {
-    }
-		
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
@@ -54,15 +50,14 @@ bool busy = FALSE;
 			if (!busy) {
    			HandshakeReceive* qu = (HandshakeReceive*)(call Packet.getPayload(&pkt, sizeof (HandshakeReceive)));
 	   		qu->message_id = hss->message_id;
-		    qu->sender_id = 0;
-		    qu->receiver_id = call AMPacket.source(msg);
 		    qu->lqi = call CC2420Packet.getLqi(msg);
 		    qu->rssi= call CC2420Packet.getRssi(msg);
 		    qu->tx=0;		    
 		    
    			printf("Sending receive to: %i \n",call AMPacket.source(msg));
    			printfflush();
-		    if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(HandshakeSend)) == SUCCESS) {
+		    if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(HandshakeReceive)) == SUCCESS) {
+		    	printf("Sent \n");
 		      busy = TRUE;
 		    }
 	    }
