@@ -950,7 +950,10 @@ static inline void TOSH_MAKE_FLASH_HOLD_OUTPUT()  ;
 # 4 "../shared/Shared.h"
 enum __nesc_unnamed4260 {
   AM_BLINKTORADIO = 6, 
-  PACKET_SIZE = 128
+  PACKET_SIZE = 128, 
+  AM_NODEA = 1, 
+  AM_NODEB = 2, 
+  AM_NODEC = 3
 };
 # 28 "/opt/tinyos-2.1.1/tos/chips/msp430/timer/Msp430Timer.h"
 enum __nesc_unnamed4261 {
@@ -15528,6 +15531,21 @@ static __inline  uint16_t __nesc_ntoh_uint16(const void * source)
   return ((uint16_t )base[0] << 8) | base[1];
 }
 
+# 77 "/opt/tinyos-2.1.1/tos/interfaces/AMPacket.nc"
+inline static am_addr_t HopSinkC__AMPacket__source(message_t * amsg){
+#line 77
+  unsigned int __nesc_result;
+#line 77
+
+#line 77
+  __nesc_result = CC2420ActiveMessageP__AMPacket__source(amsg);
+#line 77
+
+#line 77
+  return __nesc_result;
+#line 77
+}
+#line 77
 # 185 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
 static inline void CC2420ActiveMessageP__Packet__setPayloadLength(message_t *msg, uint8_t len)
 #line 185
@@ -15656,21 +15674,6 @@ inline static error_t HopSinkC__AMSend__send(am_addr_t addr, message_t * msg, ui
 #line 69
 }
 #line 69
-# 77 "/opt/tinyos-2.1.1/tos/interfaces/AMPacket.nc"
-inline static am_addr_t HopSinkC__AMPacket__source(message_t * amsg){
-#line 77
-  unsigned int __nesc_result;
-#line 77
-
-#line 77
-  __nesc_result = CC2420ActiveMessageP__AMPacket__source(amsg);
-#line 77
-
-#line 77
-  return __nesc_result;
-#line 77
-}
-#line 77
 # 90 "/opt/tinyos-2.1.1/tos/chips/cc2420/packet/CC2420PacketP.nc"
 static inline int8_t CC2420PacketP__CC2420Packet__getRssi(message_t *p_msg)
 #line 90
@@ -15759,7 +15762,7 @@ static inline message_t *HopSinkC__Receive__receive(message_t *msg, void *payloa
   if (len == sizeof(HandshakeSend )) {
       HandshakeSend *hss = (HandshakeSend *)payload;
 
-      printf("Got message from: %i \n", HopSinkC__AMPacket__source(msg));
+      printf("Got handshake message from: %i \n", HopSinkC__AMPacket__source(msg));
       printf("message_id: %i \n", __nesc_ntoh_uint16(hss->message_id.data));
       printf("Rssi: %i \n", HopSinkC__CC2420Packet__getRssi(msg));
       printf("LQI: %i \n", HopSinkC__CC2420Packet__getLqi(msg));
@@ -15776,7 +15779,7 @@ static inline message_t *HopSinkC__Receive__receive(message_t *msg, void *payloa
 
           printf("Sending receive to: %i \n", HopSinkC__AMPacket__source(msg));
           printfflush();
-          if (HopSinkC__AMSend__send(2, &HopSinkC__pkt, sizeof(HandshakeReceive )) == SUCCESS) {
+          if (HopSinkC__AMSend__send(HopSinkC__AMPacket__source(msg), &HopSinkC__pkt, sizeof(HandshakeReceive )) == SUCCESS) {
               printf("Sent \n");
               HopSinkC__busy = TRUE;
             }

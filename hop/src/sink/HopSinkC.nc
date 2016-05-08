@@ -41,7 +41,7 @@ bool busy = FALSE;
 		if (len == sizeof(HandshakeSend)) {
 			HandshakeSend* hss = (HandshakeSend*)payload;
 
-			printf("Got message from: %i \n",call AMPacket.source(msg));
+			printf("Got handshake message from: %i \n",call AMPacket.source(msg));
 			printf("message_id: %i \n",hss->message_id);
 			printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
 			printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
@@ -57,7 +57,7 @@ bool busy = FALSE;
    			printf("Sending receive to: %i \n",call AMPacket.source(msg));
    			printfflush();
 		    if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(HandshakeReceive)) == SUCCESS) {
-		    	printf("Sent \n");
+		      printf("Sent \n");
 		      busy = TRUE;
 		    }
 	    }
