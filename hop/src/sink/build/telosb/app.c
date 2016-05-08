@@ -3923,6 +3923,17 @@ message_t * msg,
 
 
 uint8_t len);
+#line 114
+static 
+#line 112
+void * 
+
+CC2420TinyosNetworkP__ActiveSend__getPayload(
+#line 111
+message_t * msg, 
+
+
+uint8_t len);
 #line 101
 static uint8_t CC2420TinyosNetworkP__ActiveSend__maxPayloadLength(void );
 # 67 "/opt/tinyos-2.1.1/tos/interfaces/Receive.nc"
@@ -4062,6 +4073,20 @@ static void CC2420ActiveMessageP__SubBackoff__requestCongestionBackoff(message_t
 static uint8_t CC2420ActiveMessageP__Packet__payloadLength(
 #line 63
 message_t * msg);
+#line 115
+static 
+#line 112
+void * 
+
+
+CC2420ActiveMessageP__Packet__getPayload(
+#line 110
+message_t * msg, 
+
+
+
+
+uint8_t len);
 #line 95
 static uint8_t CC2420ActiveMessageP__Packet__maxPayloadLength(void );
 #line 83
@@ -9166,6 +9191,10 @@ static inline error_t CC2420TinyosNetworkP__ActiveSend__send(message_t *msg, uin
 
 
 static inline uint8_t CC2420TinyosNetworkP__ActiveSend__maxPayloadLength(void );
+
+
+
+static void *CC2420TinyosNetworkP__ActiveSend__getPayload(message_t *msg, uint8_t len);
 #line 118
 static inline void CC2420TinyosNetworkP__SubSend__sendDone(message_t *msg, error_t error);
 
@@ -9233,6 +9262,17 @@ message_t * msg,
 
 
 
+
+
+uint8_t len);
+#line 114
+static 
+#line 112
+void * 
+
+CC2420ActiveMessageP__SubSend__getPayload(
+#line 111
+message_t * msg, 
 
 
 uint8_t len);
@@ -9351,7 +9391,7 @@ static am_addr_t CC2420ActiveMessageP__AMPacket__destination(message_t *amsg);
 
 
 
-static inline am_addr_t CC2420ActiveMessageP__AMPacket__source(message_t *amsg);
+static am_addr_t CC2420ActiveMessageP__AMPacket__source(message_t *amsg);
 
 
 
@@ -9390,7 +9430,7 @@ static inline uint8_t CC2420ActiveMessageP__Packet__maxPayloadLength(void );
 
 
 
-
+static inline void *CC2420ActiveMessageP__Packet__getPayload(message_t *msg, uint8_t len);
 
 
 
@@ -9448,6 +9488,20 @@ static inline void CC2420ActiveMessageP__RadioBackoff__default__requestCca(am_id
 message_t *msg);
 # 83 "/opt/tinyos-2.1.1/tos/interfaces/SplitControl.nc"
 static error_t HopSinkC__AMControl__start(void );
+# 115 "/opt/tinyos-2.1.1/tos/interfaces/Packet.nc"
+static 
+#line 112
+void * 
+
+
+HopSinkC__Packet__getPayload(
+#line 110
+message_t * msg, 
+
+
+
+
+uint8_t len);
 # 69 "/opt/tinyos-2.1.1/tos/interfaces/AMSend.nc"
 static error_t HopSinkC__AMSend__send(am_addr_t addr, 
 #line 60
@@ -9477,6 +9531,8 @@ static am_addr_t HopSinkC__AMPacket__source(
 message_t * amsg);
 # 16 "HopSinkC.nc"
 message_t HopSinkC__pkt;
+bool HopSinkC__busy = FALSE;
+
 
 static inline void HopSinkC__Boot__booted(void );
 
@@ -9484,6 +9540,8 @@ static inline void HopSinkC__Boot__booted(void );
 
 
 static inline void HopSinkC__AMSend__sendDone(message_t *msg, error_t error);
+
+
 
 
 
@@ -9541,7 +9599,7 @@ message_t * amsg,
 
 am_id_t t);
 # 45 "/opt/tinyos-2.1.1/tos/system/AMQueueEntryP.nc"
-static inline error_t /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMSend__send(am_addr_t dest, 
+static error_t /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMSend__send(am_addr_t dest, 
 message_t *msg, 
 uint8_t len);
 
@@ -13951,10 +14009,13 @@ inline static bool RealMainP__Scheduler__runNextTask(void ){
 #line 54
 }
 #line 54
-# 23 "HopSinkC.nc"
+# 25 "HopSinkC.nc"
 static inline void HopSinkC__AMSend__sendDone(message_t *msg, error_t error)
-#line 23
+#line 25
 {
+  if (&HopSinkC__pkt == msg) {
+      HopSinkC__busy = FALSE;
+    }
 }
 
 # 99 "/opt/tinyos-2.1.1/tos/interfaces/AMSend.nc"
@@ -15453,7 +15514,19 @@ inline static message_t * CC2420ActiveMessageP__Snoop__receive(am_id_t arg_0x411
 #line 67
 }
 #line 67
-# 264 "/usr/lib/ncc/nesc_nx.h"
+# 269 "/usr/lib/ncc/nesc_nx.h"
+static __inline  uint16_t __nesc_hton_uint16(void * target, uint16_t value)
+#line 269
+{
+  uint8_t *base = target;
+
+#line 271
+  base[1] = value;
+  base[0] = value >> 8;
+  return value;
+}
+
+#line 264
 static __inline  uint16_t __nesc_ntoh_uint16(const void * source)
 #line 264
 {
@@ -15463,28 +15536,36 @@ static __inline  uint16_t __nesc_ntoh_uint16(const void * source)
   return ((uint16_t )base[0] << 8) | base[1];
 }
 
-# 94 "/opt/tinyos-2.1.1/tos/chips/cc2420/packet/CC2420PacketP.nc"
-static inline uint8_t CC2420PacketP__CC2420Packet__getLqi(message_t *p_msg)
-#line 94
-{
-  return __nesc_ntoh_uint8(CC2420PacketP__CC2420PacketBody__getMetadata(p_msg)->lqi.data);
-}
+# 77 "/opt/tinyos-2.1.1/tos/interfaces/AMPacket.nc"
+inline static am_addr_t HopSinkC__AMPacket__source(message_t * amsg){
+#line 77
+  unsigned int __nesc_result;
+#line 77
 
-# 72 "/opt/tinyos-2.1.1/tos/chips/cc2420/interfaces/CC2420Packet.nc"
-inline static uint8_t HopSinkC__CC2420Packet__getLqi(message_t *p_msg){
-#line 72
-  unsigned char __nesc_result;
-#line 72
+#line 77
+  __nesc_result = CC2420ActiveMessageP__AMPacket__source(amsg);
+#line 77
 
-#line 72
-  __nesc_result = CC2420PacketP__CC2420Packet__getLqi(p_msg);
-#line 72
-
-#line 72
+#line 77
   return __nesc_result;
-#line 72
+#line 77
 }
-#line 72
+#line 77
+# 69 "/opt/tinyos-2.1.1/tos/interfaces/AMSend.nc"
+inline static error_t HopSinkC__AMSend__send(am_addr_t addr, message_t * msg, uint8_t len){
+#line 69
+  unsigned char __nesc_result;
+#line 69
+
+#line 69
+  __nesc_result = /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMSend__send(addr, msg, len);
+#line 69
+
+#line 69
+  return __nesc_result;
+#line 69
+}
+#line 69
 # 90 "/opt/tinyos-2.1.1/tos/chips/cc2420/packet/CC2420PacketP.nc"
 static inline int8_t CC2420PacketP__CC2420Packet__getRssi(message_t *p_msg)
 #line 90
@@ -15507,34 +15588,68 @@ inline static int8_t HopSinkC__CC2420Packet__getRssi(message_t *p_msg){
 #line 64
 }
 #line 64
-# 131 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-static inline am_addr_t CC2420ActiveMessageP__AMPacket__source(message_t *amsg)
-#line 131
+# 94 "/opt/tinyos-2.1.1/tos/chips/cc2420/packet/CC2420PacketP.nc"
+static inline uint8_t CC2420PacketP__CC2420Packet__getLqi(message_t *p_msg)
+#line 94
 {
-  cc2420_header_t *header = CC2420ActiveMessageP__CC2420PacketBody__getHeader(amsg);
-
-#line 133
-  return __nesc_ntoh_leuint16(header->src.data);
+  return __nesc_ntoh_uint8(CC2420PacketP__CC2420PacketBody__getMetadata(p_msg)->lqi.data);
 }
 
-# 77 "/opt/tinyos-2.1.1/tos/interfaces/AMPacket.nc"
-inline static am_addr_t HopSinkC__AMPacket__source(message_t * amsg){
-#line 77
-  unsigned int __nesc_result;
-#line 77
+# 72 "/opt/tinyos-2.1.1/tos/chips/cc2420/interfaces/CC2420Packet.nc"
+inline static uint8_t HopSinkC__CC2420Packet__getLqi(message_t *p_msg){
+#line 72
+  unsigned char __nesc_result;
+#line 72
 
-#line 77
-  __nesc_result = CC2420ActiveMessageP__AMPacket__source(amsg);
-#line 77
+#line 72
+  __nesc_result = CC2420PacketP__CC2420Packet__getLqi(p_msg);
+#line 72
 
-#line 77
+#line 72
   return __nesc_result;
-#line 77
+#line 72
 }
-#line 77
-# 40 "HopSinkC.nc"
+#line 72
+# 114 "/opt/tinyos-2.1.1/tos/interfaces/Send.nc"
+inline static void * CC2420ActiveMessageP__SubSend__getPayload(message_t * msg, uint8_t len){
+#line 114
+  void *__nesc_result;
+#line 114
+
+#line 114
+  __nesc_result = CC2420TinyosNetworkP__ActiveSend__getPayload(msg, len);
+#line 114
+
+#line 114
+  return __nesc_result;
+#line 114
+}
+#line 114
+# 193 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
+static inline void *CC2420ActiveMessageP__Packet__getPayload(message_t *msg, uint8_t len)
+#line 193
+{
+  return CC2420ActiveMessageP__SubSend__getPayload(msg, len);
+}
+
+# 115 "/opt/tinyos-2.1.1/tos/interfaces/Packet.nc"
+inline static void * HopSinkC__Packet__getPayload(message_t * msg, uint8_t len){
+#line 115
+  void *__nesc_result;
+#line 115
+
+#line 115
+  __nesc_result = CC2420ActiveMessageP__Packet__getPayload(msg, len);
+#line 115
+
+#line 115
+  return __nesc_result;
+#line 115
+}
+#line 115
+# 44 "HopSinkC.nc"
 static inline message_t *HopSinkC__Receive__receive(message_t *msg, void *payload, uint8_t len)
-#line 40
+#line 44
 {
   if (len == sizeof(HandshakeSend )) {
       HandshakeSend *hss = (HandshakeSend *)payload;
@@ -15544,7 +15659,26 @@ static inline message_t *HopSinkC__Receive__receive(message_t *msg, void *payloa
       printf("Rssi: %i \n", HopSinkC__CC2420Packet__getRssi(msg));
       printf("LQI: %i \n", HopSinkC__CC2420Packet__getLqi(msg));
       printfflush();
+
+      if (!HopSinkC__busy) {
+          HandshakeReceive *qu = (HandshakeReceive *)HopSinkC__Packet__getPayload(&HopSinkC__pkt, sizeof(HandshakeReceive ));
+
+#line 56
+          __nesc_hton_uint16(qu->message_id.data, __nesc_ntoh_uint16(hss->message_id.data));
+          __nesc_hton_uint16(qu->sender_id.data, 0);
+          __nesc_hton_uint16(qu->receiver_id.data, HopSinkC__AMPacket__source(msg));
+          __nesc_hton_uint16(qu->lqi.data, HopSinkC__CC2420Packet__getLqi(msg));
+          __nesc_hton_uint16(qu->rssi.data, HopSinkC__CC2420Packet__getRssi(msg));
+          __nesc_hton_uint16(qu->tx.data, 0);
+
+          printf("Sending receive to: %i \n", HopSinkC__AMPacket__source(msg));
+          printfflush();
+          if (HopSinkC__AMSend__send(HopSinkC__AMPacket__source(msg), &HopSinkC__pkt, sizeof(HandshakeSend )) == SUCCESS) {
+              HopSinkC__busy = TRUE;
+            }
+        }
     }
+
   return msg;
 }
 
@@ -16090,18 +16224,6 @@ inline static PrintfP__Queue__t  PrintfP__Queue__dequeue(void ){
 #line 81
 }
 #line 81
-# 269 "/usr/lib/ncc/nesc_nx.h"
-static __inline  uint16_t __nesc_hton_uint16(void * target, uint16_t value)
-#line 269
-{
-  uint8_t *base = target;
-
-#line 271
-  base[1] = value;
-  base[0] = value >> 8;
-  return value;
-}
-
 # 49 "/opt/tinyos-2.1.1/tos/lib/serial/SerialActiveMessageP.nc"
 static inline serial_header_t * /*SerialActiveMessageC.AM*/SerialActiveMessageP__0__getHeader(message_t * msg)
 #line 49
@@ -16464,6 +16586,108 @@ inline static error_t SerialP__RunTx__postTask(void ){
 #line 56
 }
 #line 56
+# 136 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
+static inline void CC2420ActiveMessageP__AMPacket__setDestination(message_t *amsg, am_addr_t addr)
+#line 136
+{
+  cc2420_header_t *header = CC2420ActiveMessageP__CC2420PacketBody__getHeader(amsg);
+
+#line 138
+  __nesc_hton_leuint16(header->dest.data, addr);
+}
+
+# 92 "/opt/tinyos-2.1.1/tos/interfaces/AMPacket.nc"
+inline static void /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMPacket__setDestination(message_t * amsg, am_addr_t addr){
+#line 92
+  CC2420ActiveMessageP__AMPacket__setDestination(amsg, addr);
+#line 92
+}
+#line 92
+# 156 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
+static inline void CC2420ActiveMessageP__AMPacket__setType(message_t *amsg, am_id_t type)
+#line 156
+{
+  cc2420_header_t *header = CC2420ActiveMessageP__CC2420PacketBody__getHeader(amsg);
+
+#line 158
+  __nesc_hton_leuint8(header->type.data, type);
+}
+
+# 151 "/opt/tinyos-2.1.1/tos/interfaces/AMPacket.nc"
+inline static void /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMPacket__setType(message_t * amsg, am_id_t t){
+#line 151
+  CC2420ActiveMessageP__AMPacket__setType(amsg, t);
+#line 151
+}
+#line 151
+# 185 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
+static inline void CC2420ActiveMessageP__Packet__setPayloadLength(message_t *msg, uint8_t len)
+#line 185
+{
+  __nesc_hton_leuint8(CC2420ActiveMessageP__CC2420PacketBody__getHeader(msg)->length.data, len + CC2420_SIZE);
+}
+
+# 83 "/opt/tinyos-2.1.1/tos/interfaces/Packet.nc"
+inline static void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Packet__setPayloadLength(message_t * msg, uint8_t len){
+#line 83
+  CC2420ActiveMessageP__Packet__setPayloadLength(msg, len);
+#line 83
+}
+#line 83
+# 82 "/opt/tinyos-2.1.1/tos/system/AMQueueImplP.nc"
+static inline error_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__send(uint8_t clientId, message_t *msg, 
+uint8_t len)
+#line 83
+{
+  if (clientId >= 1) {
+      return FAIL;
+    }
+  if (/*AMQueueP.AMQueueImplP*/AMQueueImplP__1__queue[clientId].msg != (void *)0) {
+      return EBUSY;
+    }
+  ;
+
+  /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__queue[clientId].msg = msg;
+  /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Packet__setPayloadLength(msg, len);
+
+  if (/*AMQueueP.AMQueueImplP*/AMQueueImplP__1__current >= 1) {
+      error_t err;
+      am_id_t amId = /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMPacket__type(msg);
+      am_addr_t dest = /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMPacket__destination(msg);
+
+      ;
+      /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__current = clientId;
+
+      err = /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__send(amId, dest, msg, len);
+      if (err != SUCCESS) {
+          ;
+          /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__current = 1;
+          /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__queue[clientId].msg = (void *)0;
+        }
+
+      return err;
+    }
+  else {
+      ;
+    }
+  return SUCCESS;
+}
+
+# 64 "/opt/tinyos-2.1.1/tos/interfaces/Send.nc"
+inline static error_t /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__Send__send(message_t * msg, uint8_t len){
+#line 64
+  unsigned char __nesc_result;
+#line 64
+
+#line 64
+  __nesc_result = /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__send(0U, msg, len);
+#line 64
+
+#line 64
+  return __nesc_result;
+#line 64
+}
+#line 64
 # 178 "/opt/tinyos-2.1.1/tos/chips/cc2420/spi/CC2420SpiP.nc"
 static inline uint8_t CC2420SpiP__Resource__isOwner(uint8_t id)
 #line 178
@@ -18462,9 +18686,9 @@ static inline void CC2420CsmaP__sendDone_task__runTask(void )
   CC2420CsmaP__Send__sendDone(CC2420CsmaP__m_msg, packetErr);
 }
 
-# 27 "HopSinkC.nc"
+# 31 "HopSinkC.nc"
 static inline void HopSinkC__AMControl__stopDone(error_t error)
-#line 27
+#line 31
 {
 }
 
@@ -18483,137 +18707,9 @@ static inline void CC2420CsmaP__stopDone_task__runTask(void )
   CC2420CsmaP__SplitControl__stopDone(SUCCESS);
 }
 
-# 185 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-static inline void CC2420ActiveMessageP__Packet__setPayloadLength(message_t *msg, uint8_t len)
-#line 185
-{
-  __nesc_hton_leuint8(CC2420ActiveMessageP__CC2420PacketBody__getHeader(msg)->length.data, len + CC2420_SIZE);
-}
-
-# 83 "/opt/tinyos-2.1.1/tos/interfaces/Packet.nc"
-inline static void /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Packet__setPayloadLength(message_t * msg, uint8_t len){
-#line 83
-  CC2420ActiveMessageP__Packet__setPayloadLength(msg, len);
-#line 83
-}
-#line 83
-# 82 "/opt/tinyos-2.1.1/tos/system/AMQueueImplP.nc"
-static inline error_t /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__send(uint8_t clientId, message_t *msg, 
-uint8_t len)
-#line 83
-{
-  if (clientId >= 1) {
-      return FAIL;
-    }
-  if (/*AMQueueP.AMQueueImplP*/AMQueueImplP__1__queue[clientId].msg != (void *)0) {
-      return EBUSY;
-    }
-  ;
-
-  /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__queue[clientId].msg = msg;
-  /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Packet__setPayloadLength(msg, len);
-
-  if (/*AMQueueP.AMQueueImplP*/AMQueueImplP__1__current >= 1) {
-      error_t err;
-      am_id_t amId = /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMPacket__type(msg);
-      am_addr_t dest = /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMPacket__destination(msg);
-
-      ;
-      /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__current = clientId;
-
-      err = /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__AMSend__send(amId, dest, msg, len);
-      if (err != SUCCESS) {
-          ;
-          /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__current = 1;
-          /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__queue[clientId].msg = (void *)0;
-        }
-
-      return err;
-    }
-  else {
-      ;
-    }
-  return SUCCESS;
-}
-
-# 64 "/opt/tinyos-2.1.1/tos/interfaces/Send.nc"
-inline static error_t /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__Send__send(message_t * msg, uint8_t len){
-#line 64
-  unsigned char __nesc_result;
-#line 64
-
-#line 64
-  __nesc_result = /*AMQueueP.AMQueueImplP*/AMQueueImplP__1__Send__send(0U, msg, len);
-#line 64
-
-#line 64
-  return __nesc_result;
-#line 64
-}
-#line 64
-# 156 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-static inline void CC2420ActiveMessageP__AMPacket__setType(message_t *amsg, am_id_t type)
-#line 156
-{
-  cc2420_header_t *header = CC2420ActiveMessageP__CC2420PacketBody__getHeader(amsg);
-
-#line 158
-  __nesc_hton_leuint8(header->type.data, type);
-}
-
-# 151 "/opt/tinyos-2.1.1/tos/interfaces/AMPacket.nc"
-inline static void /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMPacket__setType(message_t * amsg, am_id_t t){
-#line 151
-  CC2420ActiveMessageP__AMPacket__setType(amsg, t);
-#line 151
-}
-#line 151
-# 136 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
-static inline void CC2420ActiveMessageP__AMPacket__setDestination(message_t *amsg, am_addr_t addr)
-#line 136
-{
-  cc2420_header_t *header = CC2420ActiveMessageP__CC2420PacketBody__getHeader(amsg);
-
-#line 138
-  __nesc_hton_leuint16(header->dest.data, addr);
-}
-
-# 92 "/opt/tinyos-2.1.1/tos/interfaces/AMPacket.nc"
-inline static void /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMPacket__setDestination(message_t * amsg, am_addr_t addr){
-#line 92
-  CC2420ActiveMessageP__AMPacket__setDestination(amsg, addr);
-#line 92
-}
-#line 92
-# 45 "/opt/tinyos-2.1.1/tos/system/AMQueueEntryP.nc"
-static inline error_t /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMSend__send(am_addr_t dest, 
-message_t *msg, 
-uint8_t len)
-#line 47
-{
-  /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMPacket__setDestination(msg, dest);
-  /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMPacket__setType(msg, 6);
-  return /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__Send__send(msg, len);
-}
-
-# 69 "/opt/tinyos-2.1.1/tos/interfaces/AMSend.nc"
-inline static error_t HopSinkC__AMSend__send(am_addr_t addr, message_t * msg, uint8_t len){
-#line 69
-  unsigned char __nesc_result;
-#line 69
-
-#line 69
-  __nesc_result = /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMSend__send(addr, msg, len);
-#line 69
-
-#line 69
-  return __nesc_result;
-#line 69
-}
-#line 69
-# 31 "HopSinkC.nc"
+# 35 "HopSinkC.nc"
 static inline void HopSinkC__AMControl__startDone(error_t error)
-#line 31
+#line 35
 {
 
 
@@ -20340,9 +20436,9 @@ inline static error_t HopSinkC__AMControl__start(void ){
 #line 83
 }
 #line 83
-# 18 "HopSinkC.nc"
+# 20 "HopSinkC.nc"
 static inline void HopSinkC__Boot__booted(void )
-#line 18
+#line 20
 {
 
   HopSinkC__AMControl__start();
@@ -24754,6 +24850,16 @@ static uint8_t CC2420PacketP__CC2420Packet__getNetwork(message_t *p_msg)
   return __nesc_ntoh_leuint8(CC2420PacketP__CC2420PacketBody__getHeader(p_msg)->network.data);
 }
 
+# 131 "/opt/tinyos-2.1.1/tos/chips/cc2420/CC2420ActiveMessageP.nc"
+static am_addr_t CC2420ActiveMessageP__AMPacket__source(message_t *amsg)
+#line 131
+{
+  cc2420_header_t *header = CC2420ActiveMessageP__CC2420PacketBody__getHeader(amsg);
+
+#line 133
+  return __nesc_ntoh_leuint16(header->src.data);
+}
+
 # 143 "/opt/tinyos-2.1.1/tos/lib/printf/PrintfP.nc"
   int printfflush(void )
 #line 143
@@ -24896,6 +25002,31 @@ static void SerialP__MaybeScheduleTx(void )
     }
 #line 509
     __nesc_atomic_end(__nesc_atomic); }
+}
+
+# 86 "/opt/tinyos-2.1.1/tos/chips/cc2420/lowpan/CC2420TinyosNetworkP.nc"
+static void *CC2420TinyosNetworkP__ActiveSend__getPayload(message_t *msg, uint8_t len)
+#line 86
+{
+  if (len <= CC2420TinyosNetworkP__ActiveSend__maxPayloadLength()) {
+      return msg->data;
+    }
+  else 
+#line 89
+    {
+      return (void *)0;
+    }
+}
+
+# 45 "/opt/tinyos-2.1.1/tos/system/AMQueueEntryP.nc"
+static error_t /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMSend__send(am_addr_t dest, 
+message_t *msg, 
+uint8_t len)
+#line 47
+{
+  /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMPacket__setDestination(msg, dest);
+  /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__AMPacket__setType(msg, 6);
+  return /*HopSinkAppC.AMSenderC.SenderC.AMQueueEntryP*/AMQueueEntryP__1__Send__send(msg, len);
 }
 
 # 764 "/opt/tinyos-2.1.1/tos/chips/cc2420/receive/CC2420ReceiveP.nc"

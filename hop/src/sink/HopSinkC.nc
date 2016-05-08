@@ -14,6 +14,8 @@ module HopSinkC {
 implementation {
 	
 message_t pkt;
+bool busy = FALSE;
+
 
 	event void Boot.booted(){
 
@@ -21,7 +23,9 @@ message_t pkt;
 	}
 
 	event void AMSend.sendDone(message_t *msg, error_t error){
-		// TODO Auto-generated method stub
+		if (&pkt == msg) {
+      busy = FALSE;
+    }
 	}
 
 	event void AMControl.stopDone(error_t error){
@@ -46,6 +50,23 @@ message_t pkt;
 			printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
 			printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
 			printfflush();
+			
+			if (!busy) {
+   			HandshakeReceive* qu = (HandshakeReceive*)(call Packet.getPayload(&pkt, sizeof (HandshakeReceive)));
+	   		qu->message_id = hss->message_id;
+		    qu->sender_id = 0;
+		    qu->receiver_id = call AMPacket.source(msg);
+		    qu->lqi = call CC2420Packet.getLqi(msg);
+		    qu->rssi= call CC2420Packet.getRssi(msg);
+		    qu->tx=0;		    
+		    
+   			printf("Sending receive to: %i \n",call AMPacket.source(msg));
+   			printfflush();
+		    if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(HandshakeSend)) == SUCCESS) {
+		      busy = TRUE;
+		    }
+	    }
+			
 		}
 		return msg;
 	}
