@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <buildTargets>
+<<<<<<< HEAD
     <default version="4">
         <default>true</default>
         <project/>
@@ -19,4 +20,29 @@
         <include-env-default-paths>true</include-env-default-paths>
         <environment_variables/>
     </default>
+=======
+<default version="4">
+<default>true</default>
+<project/>
+<target>telosb</target>
+<make-extras/>
+<includes>
+<include global="false" include="system" ncc="true" recursive="true">/opt/tinyos-2.1.1/tos/lib/printf</include>
+<include global="true" include="none" ncc="false" recursive="false">/opt/tinyos-2.1.1/tos/lib/printf/printf.h</include>
+</includes>
+<excludes>
+<exclude>.*\.svn.*</exclude>
+</excludes>
+<typedefs/>
+<macros/>
+<boards/>
+<no-std-incl>false</no-std-incl>
+<component/>
+<component-file/>
+<include-last-build>true</include-last-build>
+<include-env-default-paths>true</include-env-default-paths>
+<environment_variables/>
+</default>
+<client-data/>
+>>>>>>> origin/master
 </buildTargets>
