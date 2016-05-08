@@ -5,7 +5,7 @@
 #include "../shared/HopMessages.h"
 #include "SourceNode.h"
  
-  module SourceNodeC {
+module SourceNodeC {
    uses interface Boot;
    uses interface Leds;
    uses interface Timer<TMilli> as Timer0;
@@ -15,26 +15,24 @@
    uses interface SplitControl as AMControl;
    uses interface Receive;
    uses interface CC2420Packet;
-
- }
- implementation {
+}
+implementation {
    bool busy = FALSE;
    message_t pkt;
    uint16_t counter = 0;
-
  
-   event void Boot.booted() {
-    call AMControl.start();
-  }
+	event void Boot.booted() {
+		call AMControl.start();
+  	}
 
-   event void AMControl.startDone(error_t err) {
-    if (err == SUCCESS) {
-      call Timer0.startPeriodic(TIMER_PERIOD_MILLI);
+	event void AMControl.startDone(error_t err) {
+		if (err == SUCCESS) {
+	    	call Timer0.startPeriodic(TIMER_PERIOD_MILLI);
+	    }
+	    else {
+	      call AMControl.start();
+	    }
     }
-    else {
-      call AMControl.start();
-    }
-  }
 
 	event void AMControl.stopDone(error_t err) {
   	}
@@ -45,9 +43,7 @@
    		printfflush();
    		if (!busy) {
    			HandshakeSend* qu = (HandshakeSend*)(call Packet.getPayload(&pkt, sizeof (HandshakeSend)));
-	   		qu->sender_id = TOS_NODE_ID;
 		    qu->message_id = counter;
-		    qu->sender_id = 1;
 		    
    			printf("Send packet %i, %i \n", counter, sizeof(HandshakeSend));
    			printfflush();

@@ -3,9 +3,9 @@
 #include "../shared/Shared.h"
 #include "../shared/HopMessages.h"
  
- configuration SourceNodeAppC {
- }
- implementation {
+configuration SourceNodeAppC {
+}
+implementation {
    components MainC;
    components LedsC;
    components SourceNodeC as App;
@@ -24,5 +24,5 @@
    App.Leds -> LedsC;
    App.Timer0 -> Timer0;
    App.Receive -> AMReceiverC;
- }
+}
  
