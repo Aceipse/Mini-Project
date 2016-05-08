@@ -1,4 +1,4 @@
-#include "../Shared/Shared.h"
+#include "Shared.h"
 
 configuration HopSinkAppC {
 }

@@ -1,5 +1,6 @@
-#include "../Shared/HopMessages.h"
-#include "/opt/tinyos-2.1.1/tos/lib/printf/printf.h"
+#include "HopMessages.h"
+#include "printf.h"
+#include <stdio.h>
 
 module HopSinkC {
 	uses interface Boot;

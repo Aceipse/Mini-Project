@@ -49,7 +49,7 @@
 		    qu->message_id = counter;
 		    qu->sender_id = 1;
 		    
-   			printf("Send packet %i \n", counter);
+   			printf("Send packet %i, %i \n", counter, sizeof(HandshakeSend));
    			printfflush();
 		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(HandshakeSend)) == SUCCESS) {
 		      busy = TRUE;
