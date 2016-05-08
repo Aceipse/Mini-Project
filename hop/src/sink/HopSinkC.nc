@@ -13,8 +13,8 @@ module HopSinkC {
 }
 implementation {
 	
-message_t pkt;
-bool busy = FALSE;
+	message_t pkt;
+	bool busy = FALSE;
 
 
 	event void Boot.booted(){
@@ -24,8 +24,8 @@ bool busy = FALSE;
 
 	event void AMSend.sendDone(message_t *msg, error_t error){
 		if (&pkt == msg) {
-      busy = FALSE;
-    }
+			busy = FALSE;
+		}
 	}
 
 	event void AMControl.stopDone(error_t error){
@@ -34,7 +34,7 @@ bool busy = FALSE;
 
 	event void AMControl.startDone(error_t error){
 		// TODO Auto-generated method stub
-		
+	
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
@@ -46,22 +46,23 @@ bool busy = FALSE;
 			printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
 			printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
 			printfflush();
-			
+	
 			if (!busy) {
-   			HandshakeReceive* qu = (HandshakeReceive*)(call Packet.getPayload(&pkt, sizeof (HandshakeReceive)));
-	   		qu->message_id = hss->message_id;
-		    qu->lqi = call CC2420Packet.getLqi(msg);
-		    qu->rssi= call CC2420Packet.getRssi(msg);
-		    qu->tx=0;		    
-		    
-   			printf("Sending receive to: %i \n",call AMPacket.source(msg));
-   			printfflush();
-		    if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(HandshakeReceive)) == SUCCESS) {
-		      printf("Sent \n");
-		      busy = TRUE;
-		    }
-	    }
-			
+
+				HandshakeReceive* qu = (HandshakeReceive*)(call Packet.getPayload(&pkt, sizeof (HandshakeReceive)));
+				qu->message_id = hss->message_id;
+				qu->lqi = call CC2420Packet.getLqi(msg);
+				qu->rssi= call CC2420Packet.getRssi(msg);
+				qu->tx=0;		    
+ 
+				printf("Sending receive to: %i \n",call AMPacket.source(msg));
+				printfflush();
+				if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(HandshakeReceive)) == SUCCESS) {
+					printf("Sent \n");
+					busy = TRUE;
+				}
+			}
+
 		}
 		return msg;
 	}
