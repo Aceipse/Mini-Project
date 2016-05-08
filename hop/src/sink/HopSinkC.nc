@@ -1,3 +1,4 @@
+#include <printf.h>
 #include "../Shared/HopMessages.h"
  
 module HopSinkC {
@@ -26,9 +27,9 @@ implementation {
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
-		if (len == sizeof(BlinkToRadioMsg)) {
-			BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)payload;
-			call Leds.set(btrpkt->counter);
+		if (len == sizeof(HandshakeSend) {
+			HandshakeSend* hss = (HandshakeSend*)payload;
+			printf("I GOT MESSAGE\n");
 		}
 		return msg;
 	}
