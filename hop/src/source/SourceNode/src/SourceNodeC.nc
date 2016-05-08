@@ -1,6 +1,9 @@
- #include <Timer.h>
- #include "SourceNode.h"
- #include <printf.h>
+#include <stdio.h>
+#include <Timer.h>
+#include "printf.h"
+#include "Shared.h"
+#include "SourceNode.h"
+#include "HopMessages.h"
  
   module SourceNodeC {
    uses interface Boot;
@@ -33,58 +36,47 @@
     }
   }
 
-  event void AMControl.stopDone(error_t err) {
-  }
- 
-   event void Timer0.fired() {
-     /* counter++;
-     call Leds.set(counter);if (!busy) {
-    BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)(call Packet.getPayload(&pkt, sizeof (BlinkToRadioMsg)));
-    btrpkt->senderid = TOS_NODE_ID;
-    btrpkt->msgid = counter;
-    btrpkt->receiverid = 3;
-    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(BlinkToRadioMsg)) == SUCCESS) {
-      busy = TRUE;
-    }
-  } */
-}
+	event void AMControl.stopDone(error_t err) {
+  	}
 
-
- event void AMSend.sendDone(message_t* msg, error_t error) {
-    if (&pkt == msg) {
-      busy = FALSE;
-    }
-  }
-
-event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-  if (len == sizeof(HandshakeSend)) {
-    HandshakeSend* btrpkt = (HandshakeSend*)payload;
-    
-    printf("Receiverid: %i \n", btrpkt->receiver_id);
-    printf("Nodeid: %i \n", TOS_NODE_ID);
-    
-	if(btrpkt->receiver_id == TOS_NODE_ID)
-	{
-		call Leds.set(btrpkt->message_id);
-		printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
-		printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
-		printfflush();
-		
-		if (!busy) 
-		{
-		    HandshakeReceive* sendpkt = (HandshakeReceive*)(call Packet.getPayload(&pkt, sizeof (HandshakeReceive)));
-		    sendpkt->sender_id = TOS_NODE_ID;
-		    sendpkt->message_id= counter;
-		    sendpkt->receiver_id = btrpkt->sender_id;
-		    sendpkt->lqi = call CC2420Packet.getLqi(msg);
-		    sendpkt->rssi = call CC2420Packet.getRssi(msg);
-		    sendpkt->tx = 0; 
-		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(HandshakeReceive)) == SUCCESS) {
+   	event void Timer0.fired() {
+   		counter++;
+   		printf("Send init %i \n", counter);
+   		printfflush();
+   		if (!busy) {
+   			HandshakeSend* qu = (HandshakeSend*)(call Packet.getPayload(&pkt, sizeof (HandshakeSend)));
+	   		qu->sender_id = TOS_NODE_ID;
+		    qu->message_id = counter;
+		    qu->sender_id = 1;
+		    
+   			printf("Send packet %i \n", counter);
+   			printfflush();
+		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(HandshakeSend)) == SUCCESS) {
 		      busy = TRUE;
 		    }
+	    }
+	}
+
+	event void AMSend.sendDone(message_t* msg, error_t error) {
+		if (&pkt == msg) {
+			busy = FALSE;
 		}
 	}
-  }
-  return msg;
-}
+
+	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+	//  if (len == sizeof(HandshakeSend)) {
+	//    HandshakeSend* btrpkt = (HandshakeSend*)payload;
+	//
+	//    printf("Nodeid: %i \n", TOS_NODE_ID);
+	//    
+	//	if(btrpkt->receiver_id == TOS_NODE_ID)
+	//	{
+	//		call Leds.set(btrpkt->message_id);
+	//		//printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
+	//		//printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
+	//		printfflush();
+	//	}
+	//  }
+	  return msg;
+	}
 }
