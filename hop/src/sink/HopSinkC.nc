@@ -1,6 +1,6 @@
-#include <printf.h>
 #include "../Shared/HopMessages.h"
- 
+#include "/opt/tinyos-2.1.1/tos/lib/printf/printf.h"
+
 module HopSinkC {
 	uses interface Boot;
 	uses interface Packet;
@@ -10,7 +10,7 @@ module HopSinkC {
 	uses interface Receive;
 }
 implementation {
-	event void Boot.booted(){
+	event void Boot.booted() {
 		call AMControl.start();
 	}
 
@@ -27,9 +27,9 @@ implementation {
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
-		if (len == sizeof(HandshakeSend) {
+		if (len == sizeof(HandshakeSend)) {
 			HandshakeSend* hss = (HandshakeSend*)payload;
-			printf("I GOT MESSAGE\n");
+			printf("RECEIVED MESSAGE");
 		}
 		return msg;
 	}
