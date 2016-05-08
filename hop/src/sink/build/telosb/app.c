@@ -947,7 +947,7 @@ static inline void TOSH_MAKE_FLASH_CS_OUTPUT()  ;
 static inline void TOSH_SET_FLASH_HOLD_PIN()  ;
 #line 89
 static inline void TOSH_MAKE_FLASH_HOLD_OUTPUT()  ;
-# 4 "../Shared/Shared.h"
+# 4 "../shared/Shared.h"
 enum __nesc_unnamed4260 {
   AM_BLINKTORADIO = 6, 
   PACKET_SIZE = 128
@@ -1902,9 +1902,9 @@ typedef struct timesync_footer_t {
   nx_am_id_t type;
   timesync_radio_t timestamp;
 } timesync_footer_t;
-# 9 "../Shared/HopMessages.h"
+# 9 "../shared/HopMessages.h"
 #line 5
-typedef nx_struct handshake_send {
+typedef nx_struct HandshakeSend {
   nx_uint16_t message_id;
   nx_uint16_t sender_id;
   nx_uint16_t receiver_id;
@@ -1918,7 +1918,7 @@ typedef nx_struct handshake_send {
 
 
 #line 11
-typedef nx_struct handshake_receive {
+typedef nx_struct HandshakeReceive {
   nx_uint16_t message_id;
   nx_uint16_t sender_id;
   nx_uint16_t receiver_id;
@@ -1926,42 +1926,6 @@ typedef nx_struct handshake_receive {
   nx_uint16_t rssi;
   nx_uint16_t tx;
 } __attribute__((packed)) HandshakeReceive;
-
-
-
-
-
-
-
-
-#line 20
-typedef nx_struct data_send {
-} __attribute__((packed)) 
-
-
-
-
-
-data_send;
-
-
-
-
-
-
-
-
-
-#line 29
-typedef nx_struct data_receive {
-} __attribute__((packed)) 
-
-
-
-
-
-
-data_receive;
 enum /*PlatformSerialC.UartC*/Msp430Uart1C__0____nesc_unnamed4296 {
   Msp430Uart1C__0__CLIENT_ID = 0U
 };
@@ -9511,10 +9475,11 @@ static uint8_t HopSinkC__CC2420Packet__getLqi(message_t *p_msg);
 static am_addr_t HopSinkC__AMPacket__source(
 #line 73
 message_t * amsg);
-# 15 "HopSinkC.nc"
+# 16 "HopSinkC.nc"
 message_t HopSinkC__pkt;
 
 static inline void HopSinkC__Boot__booted(void );
+
 
 
 
@@ -13986,9 +13951,9 @@ inline static bool RealMainP__Scheduler__runNextTask(void ){
 #line 54
 }
 #line 54
-# 21 "HopSinkC.nc"
+# 23 "HopSinkC.nc"
 static inline void HopSinkC__AMSend__sendDone(message_t *msg, error_t error)
-#line 21
+#line 23
 {
 }
 
@@ -15567,14 +15532,13 @@ inline static am_addr_t HopSinkC__AMPacket__source(message_t * amsg){
 #line 77
 }
 #line 77
-# 38 "HopSinkC.nc"
+# 40 "HopSinkC.nc"
 static inline message_t *HopSinkC__Receive__receive(message_t *msg, void *payload, uint8_t len)
-#line 38
+#line 40
 {
   if (len == sizeof(HandshakeSend )) {
       HandshakeSend *hss = (HandshakeSend *)payload;
 
-#line 41
       printf("Got message from: %i \n", HopSinkC__AMPacket__source(msg));
       printf("message_id: %i \n", __nesc_ntoh_uint16(hss->message_id.data));
       printf("Rssi: %i \n", HopSinkC__CC2420Packet__getRssi(msg));
@@ -18498,9 +18462,9 @@ static inline void CC2420CsmaP__sendDone_task__runTask(void )
   CC2420CsmaP__Send__sendDone(CC2420CsmaP__m_msg, packetErr);
 }
 
-# 25 "HopSinkC.nc"
+# 27 "HopSinkC.nc"
 static inline void HopSinkC__AMControl__stopDone(error_t error)
-#line 25
+#line 27
 {
 }
 
@@ -18647,9 +18611,9 @@ inline static error_t HopSinkC__AMSend__send(am_addr_t addr, message_t * msg, ui
 #line 69
 }
 #line 69
-# 29 "HopSinkC.nc"
+# 31 "HopSinkC.nc"
 static inline void HopSinkC__AMControl__startDone(error_t error)
-#line 29
+#line 31
 {
 
 
@@ -20376,10 +20340,11 @@ inline static error_t HopSinkC__AMControl__start(void ){
 #line 83
 }
 #line 83
-# 17 "HopSinkC.nc"
+# 18 "HopSinkC.nc"
 static inline void HopSinkC__Boot__booted(void )
-#line 17
+#line 18
 {
+
   HopSinkC__AMControl__start();
 }
 
