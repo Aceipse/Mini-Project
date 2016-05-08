@@ -1,4 +1,4 @@
-#include "HopSink.h"
+#include "../Shared/HopMessages.h"
  
 module HopSinkC {
 	uses interface Boot;
@@ -10,7 +10,7 @@ module HopSinkC {
 }
 implementation {
 	event void Boot.booted(){
-		// TODO Auto-generated method stub
+		call AMControl.start();
 	}
 
 	event void AMSend.sendDone(message_t *msg, error_t error){
@@ -26,6 +26,10 @@ implementation {
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
-		// TODO Auto-generated method stub
+		if (len == sizeof(BlinkToRadioMsg)) {
+			BlinkToRadioMsg* btrpkt = (BlinkToRadioMsg*)payload;
+			call Leds.set(btrpkt->counter);
+		}
+		return msg;
 	}
 }
