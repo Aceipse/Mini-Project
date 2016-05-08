@@ -23,6 +23,11 @@ nx_uint16_t data_counter;
 nx_uint16_t data_part;
 } DataSend;
 
+typedef  nx_struct Retransmission{
+nx_uint16_t message_id;
+} Retransmission;
+
+
  /*typedef  nx_struct DataReceive {
 nx_uint16_t message\_id
 nx_uint16_t sender\_id

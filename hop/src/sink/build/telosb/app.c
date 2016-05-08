@@ -1905,10 +1905,12 @@ typedef struct timesync_footer_t {
   nx_am_id_t type;
   timesync_radio_t timestamp;
 } timesync_footer_t;
-# 7 "../shared/HopMessages.h"
+# 9 "../shared/HopMessages.h"
 #line 5
 typedef nx_struct HandshakeSend {
   nx_uint16_t message_id;
+  nx_uint16_t sender_id;
+  nx_uint16_t receiver_id;
 } __attribute__((packed)) HandshakeSend;
 
 
@@ -1917,14 +1919,34 @@ typedef nx_struct HandshakeSend {
 
 
 
-#line 9
+
+#line 11
 typedef nx_struct HandshakeReceive {
   nx_uint16_t message_id;
+  nx_uint16_t sender_id;
   nx_uint16_t receiver_id;
   nx_uint16_t lqi;
   nx_uint16_t rssi;
   nx_uint16_t tx;
 } __attribute__((packed)) HandshakeReceive;
+
+
+
+
+
+#line 20
+typedef nx_struct DataSend {
+  nx_uint16_t message_id;
+  nx_uint16_t data_counter;
+  nx_uint16_t data_part;
+} __attribute__((packed)) DataSend;
+
+
+
+#line 26
+typedef nx_struct Retransmission {
+  nx_uint16_t message_id;
+} __attribute__((packed)) Retransmission;
 enum /*PlatformSerialC.UartC*/Msp430Uart1C__0____nesc_unnamed4296 {
   Msp430Uart1C__0__CLIENT_ID = 0U
 };
@@ -15769,9 +15791,10 @@ static inline message_t *HopSinkC__Receive__receive(message_t *msg, void *payloa
       printfflush();
 
       if (!HopSinkC__busy) {
+
           HandshakeReceive *qu = (HandshakeReceive *)HopSinkC__Packet__getPayload(&HopSinkC__pkt, sizeof(HandshakeReceive ));
 
-#line 52
+#line 53
           __nesc_hton_uint16(qu->message_id.data, __nesc_ntoh_uint16(hss->message_id.data));
           __nesc_hton_uint16(qu->lqi.data, HopSinkC__CC2420Packet__getLqi(msg));
           __nesc_hton_uint16(qu->rssi.data, HopSinkC__CC2420Packet__getRssi(msg));
