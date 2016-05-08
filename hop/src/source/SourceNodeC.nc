@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <Timer.h>
 #include "printf.h"
-#include "Shared.h"
+#include "../shared/Shared.h"
+#include "../shared/HopMessages.h"
 #include "SourceNode.h"
-#include "HopMessages.h"
  
   module SourceNodeC {
    uses interface Boot;
