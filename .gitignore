@@ -4,3 +4,5 @@ build/
 hop/.project
 
 hop/.externalToolBuilders/tinyos.yeti.core.projectbuilder.launch
+
+hop/src/sink/build/telosb/ident_flags.txt
