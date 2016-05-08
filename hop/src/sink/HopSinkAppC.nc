@@ -1,4 +1,3 @@
-#include "HopSink.h"
 #include "../Shared/Shared.h"
 
 configuration HopSinkAppC {
@@ -9,7 +8,9 @@ implementation {
 	components HopSinkC as App;
 	components new AMSenderC(AM_BLINKTORADIO);
 	components new AMReceiverC(AM_BLINKTORADIO);
+	components CC2420ActiveMessageC;
 	
+	App -> CC2420ActiveMessageC.CC2420Packet;
 	App.Packet -> AMSenderC;
 	App.AMPacket -> AMSenderC;
 	App.AMSend -> AMSenderC;
