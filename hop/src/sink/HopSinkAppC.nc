@@ -1,4 +1,3 @@
-#include "HopSink.h"
 #include "../Shared/Shared.h"
 
 configuration HopSinkAppC {
