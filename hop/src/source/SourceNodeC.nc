@@ -16,10 +16,12 @@ module SourceNodeC {
    uses interface Receive;
    uses interface CC2420Packet;
 }
-implementation {
-   bool busy = FALSE;
-   message_t pkt;
-   uint16_t counter = 0;
+implementation {   	   	
+	bool busy = FALSE;
+	message_t pkt;
+	uint16_t counter = 0;
+	int history_size = 10;
+	//History* history[ history_size ];
  
 	event void Boot.booted() {
 		call AMControl.start();
@@ -39,8 +41,6 @@ implementation {
 
    	event void Timer0.fired() {
    		counter++;
-   		printf("Send init %i \n", counter);
-   		printfflush();
    		if (!busy) {
    			HandshakeSend* qu = (HandshakeSend*)(call Packet.getPayload(&pkt, sizeof (HandshakeSend)));
 		    qu->message_id = counter;
@@ -60,19 +60,21 @@ implementation {
 	}
 
 	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-	//  if (len == sizeof(HandshakeSend)) {
-	//    HandshakeSend* btrpkt = (HandshakeSend*)payload;
-	//
-	//    printf("Nodeid: %i \n", TOS_NODE_ID);
-	//    
-	//	if(btrpkt->receiver_id == TOS_NODE_ID)
-	//	{
-	//		call Leds.set(btrpkt->message_id);
-	//		//printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
-	//		//printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
-	//		printfflush();
-	//	}
-	//  }
+	  if (len == sizeof(HandshakeReceive)) {
+	    HandshakeReceive* btrpkt = (HandshakeReceive*)payload;
+
+	    printf("Sender id: %i \n", btrpkt->receiver_id);
+		printfflush();
+	    
+//		if(btrpkt->receiver_id == TOS_NODE_ID)
+//		{
+//			printf("Recived");
+//			//call Leds.set(btrpkt->message_id);
+//			//printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
+//			//printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
+//			printfflush();
+//		}
+	  }
 	  return msg;
 	}
 }
