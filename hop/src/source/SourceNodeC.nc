@@ -42,12 +42,12 @@ implementation {
    	event void Timer0.fired() {
    		counter++;
    		if (!busy) {
-   			HandshakeSend* qu = (HandshakeSend*)(call Packet.getPayload(&pkt, sizeof (HandshakeSend)));
+   			LinkRequest* qu = (LinkRequest*)(call Packet.getPayload(&pkt, sizeof (LinkRequest)));
 		    qu->message_id = counter;
 		    
-   			printf("Send packet %i, %i \n", counter, sizeof(HandshakeSend));
+   			printf("Send packet %i, %i \n", counter, sizeof(LinkRequest));
    			printfflush();
-		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(HandshakeSend)) == SUCCESS) {
+		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(LinkRequest)) == SUCCESS) {
 		      busy = TRUE;
 		    }
 	    }
@@ -60,8 +60,8 @@ implementation {
 	}
 
 	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-	  if (len == sizeof(HandshakeReceive)) {
-	    HandshakeReceive* btrpkt = (HandshakeReceive*)payload;
+	  if (len == sizeof(LinkResponse)) {
+	    LinkResponse* btrpkt = (LinkResponse*)payload;
 
 	    printf("Sender id: %i \n", btrpkt->receiver_id);
 		printfflush();

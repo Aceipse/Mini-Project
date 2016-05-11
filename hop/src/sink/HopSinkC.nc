@@ -40,8 +40,8 @@ implementation {
 	}
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len){
-		if (len == sizeof(HandshakeSend)) {
-			HandshakeSend* hss = (HandshakeSend*)payload;
+		if (len == sizeof(LinkRequest)) {
+			LinkRequest* hss = (LinkRequest*)payload;
 
 			printf("Got handshake message from: %i \n",call AMPacket.source(msg));
 			printf("message_id: %i \n",hss->message_id);
@@ -50,8 +50,7 @@ implementation {
 			printfflush();
 	
 			if (!busy) {
-
-				HandshakeReceive* qu = (HandshakeReceive*)(call Packet.getPayload(&pkt, sizeof (HandshakeReceive)));
+				LinkResponse* qu = (LinkResponse*)(call Packet.getPayload(&pkt, sizeof (LinkResponse)));
 				qu->message_id = hss->message_id;
 				qu->lqi = call CC2420Packet.getLqi(msg);
 				qu->rssi= call CC2420Packet.getRssi(msg);
@@ -59,7 +58,7 @@ implementation {
  
 				printf("Sending receive to: %i \n",call AMPacket.source(msg));
 				printfflush();
-				if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(HandshakeReceive)) == SUCCESS) {
+				if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(LinkResponse)) == SUCCESS) {
 					printf("Sent \n");
 					busy = TRUE;
 				}

@@ -2,3 +2,7 @@
 build/
 hop/.project
 hop/.externalToolBuilders/tinyos.yeti.core.projectbuilder.launch
+
+*.db
+
+*.db-wal
