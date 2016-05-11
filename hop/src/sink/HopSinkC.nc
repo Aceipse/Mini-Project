@@ -41,7 +41,7 @@ implementation {
     int i;
     for (i = 0; i < LISTSIZE; i++) {
       if (list[i].message_id == 0) {
-		  printf("---------------------------------------------------------------Inserting into missing packages id %i\n", id);
+		  printf("Inserting into missing packages id %i\n", id);
         printfflush();
 		list[i].message_id=id;
         return;
@@ -85,7 +85,7 @@ implementation {
 		if (call AMSend.send(AM_BROADCAST_ADDR, &pkt,
                              sizeof(Retransmission)) == SUCCESS) {
           busy = TRUE;
-          printf("Sent !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+          printf("Sent Retransmission! \n");
         }
 		}
 		
