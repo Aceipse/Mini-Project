@@ -20,6 +20,8 @@ implementation {
 	event void Boot.booted(){
 
 		call AMControl.start();
+		printf("Inside Boot.Booted\n");
+		printfflush();
 	}
 
 	event void AMSend.sendDone(message_t *msg, error_t error){

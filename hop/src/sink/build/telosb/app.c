@@ -9560,6 +9560,8 @@ static inline void HopSinkC__Boot__booted(void );
 
 
 
+
+
 static inline void HopSinkC__AMSend__sendDone(message_t *msg, error_t error);
 
 
@@ -14026,9 +14028,9 @@ inline static bool RealMainP__Scheduler__runNextTask(void ){
 #line 54
 }
 #line 54
-# 25 "HopSinkC.nc"
+# 27 "HopSinkC.nc"
 static inline void HopSinkC__AMSend__sendDone(message_t *msg, error_t error)
-#line 25
+#line 27
 {
   if (&HopSinkC__pkt == msg) {
       HopSinkC__busy = FALSE;
@@ -15777,9 +15779,9 @@ inline static void * HopSinkC__Packet__getPayload(message_t * msg, uint8_t len){
 #line 115
 }
 #line 115
-# 40 "HopSinkC.nc"
+# 42 "HopSinkC.nc"
 static inline message_t *HopSinkC__Receive__receive(message_t *msg, void *payload, uint8_t len)
-#line 40
+#line 42
 {
   if (len == sizeof(HandshakeSend )) {
       HandshakeSend *hss = (HandshakeSend *)payload;
@@ -15794,7 +15796,7 @@ static inline message_t *HopSinkC__Receive__receive(message_t *msg, void *payloa
 
           HandshakeReceive *qu = (HandshakeReceive *)HopSinkC__Packet__getPayload(&HopSinkC__pkt, sizeof(HandshakeReceive ));
 
-#line 53
+#line 55
           __nesc_hton_uint16(qu->message_id.data, __nesc_ntoh_uint16(hss->message_id.data));
           __nesc_hton_uint16(qu->lqi.data, HopSinkC__CC2420Packet__getLqi(msg));
           __nesc_hton_uint16(qu->rssi.data, HopSinkC__CC2420Packet__getRssi(msg));
@@ -18714,9 +18716,9 @@ static inline void CC2420CsmaP__sendDone_task__runTask(void )
   CC2420CsmaP__Send__sendDone(CC2420CsmaP__m_msg, packetErr);
 }
 
-# 31 "HopSinkC.nc"
+# 33 "HopSinkC.nc"
 static inline void HopSinkC__AMControl__stopDone(error_t error)
-#line 31
+#line 33
 {
 }
 
@@ -18735,9 +18737,9 @@ static inline void CC2420CsmaP__stopDone_task__runTask(void )
   CC2420CsmaP__SplitControl__stopDone(SUCCESS);
 }
 
-# 35 "HopSinkC.nc"
+# 37 "HopSinkC.nc"
 static inline void HopSinkC__AMControl__startDone(error_t error)
-#line 35
+#line 37
 {
 }
 
@@ -20465,6 +20467,8 @@ static inline void HopSinkC__Boot__booted(void )
 {
 
   HopSinkC__AMControl__start();
+  printf("Inside Boot.Booted\n");
+  printfflush();
 }
 
 # 49 "/opt/tinyos-2.1.1/tos/interfaces/Boot.nc"
