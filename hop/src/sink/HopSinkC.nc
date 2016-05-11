@@ -29,8 +29,8 @@ implementation {
     for (i = 0; i < LISTSIZE; i++) {
       if (list[i] == NULL) {
         list[i] = item;
-        /*list[i]->message_id = item->message_id;
-        list[i]->retries = item->retries;*/
+        printf("Inserting into missing packages id %i", item->message_id);
+        printfflush();
         return;
       }
     }
@@ -94,8 +94,8 @@ implementation {
         printfflush();
         if (call AMSend.send(call AMPacket.source(msg), &pkt,
                              sizeof(LinkResponse)) == SUCCESS) {
-          printf("Sent \n");
           busy = TRUE;
+          printf("Sent \n");
         }
       }
 
@@ -118,10 +118,14 @@ implementation {
           insert(ro);
         }
         // Continue & forget the missing packages (we wrote them down)
+        printf("MISSED PACKAGES lastDataId was %i and receivedId was %i\n",
+               lastDataId, receivedId);
+        printfflush();
+        
         lastDataId = receivedId;
       } else {
         lastDataId = receivedId;
-        printf("Got data, temperature is: %i", data->data_part);
+        printf("Got data, temperature is: %i\n", data->data_part);
       }
     }
     return msg;
