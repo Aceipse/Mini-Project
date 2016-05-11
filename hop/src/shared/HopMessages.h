@@ -1,12 +1,13 @@
 #ifndef HOP_MESSAGES_H
 #define HOP_MESSAGES_H
 
-//Messages for protocol
-typedef nx_struct LinkRequest {
-  nx_uint16_t message_id;
-} LinkRequest;
+// Messages for protocol
 
+//Request link quality
+typedef nx_struct LinkRequest { nx_uint16_t message_id; }
+LinkRequest;
 
+//Respond the link quality
 typedef nx_struct LinkResponse {
   nx_uint16_t message_id;
   nx_uint16_t sender_id;
@@ -14,20 +15,28 @@ typedef nx_struct LinkResponse {
   nx_uint16_t lqi;
   nx_uint16_t rssi;
   nx_uint16_t tx;
-} LinkResponse;
+}
+LinkResponse;
 
-typedef  nx_struct DataSend {
-nx_uint16_t message_id;
-nx_uint16_t data_counter;
-nx_uint16_t data_part;
-} DataSend;
+//Data being sent
+typedef nx_struct DataSend {
+  nx_uint16_t message_id;
+  nx_uint16_t data_counter;
+  nx_uint16_t data_part;
+}
+DataSend;
 
-typedef  nx_struct Retransmission{
-nx_uint16_t message_id;
-} Retransmission;
+//Retransmission is used as NAK but also to passively detect link quality
+typedef nx_struct Retransmission {
+  nx_uint16_t message_id;
+  nx_uint16_t lqi;
+  nx_uint16_t rssi;
+}
+Retransmission;
 
 
- /*typedef  nx_struct DataReceive {
+
+/*typedef  nx_struct DataReceive {
 nx_uint16_t message\_id
 nx_uint16_t sender\_id
 nx_uint16_t receiver\_id
