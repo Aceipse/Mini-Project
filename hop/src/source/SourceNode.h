@@ -2,6 +2,12 @@
 #define SOURCENODE_H
 
 enum {
-  TIMER_PERIOD_MILLI = 250
+  TIMER_PERIOD_MILLI = 1000
 };
+
+/*
+typedef nx_struct History {
+  nx_uint16_t message_id;
+  nx_uint16_t tx_power;
+} History; */
 #endif

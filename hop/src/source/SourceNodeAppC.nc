@@ -25,4 +25,3 @@ implementation {
    App.Timer0 -> Timer0;
    App.Receive -> AMReceiverC;
 }
- 

@@ -41,7 +41,7 @@ implementation {
 		if (len == sizeof(LinkRequest)) {
 			LinkRequest* hss = (LinkRequest*)payload;
 
-			printf("Got message from: %i \n",call AMPacket.source(msg));
+			printf("Got handshake message from: %i \n",call AMPacket.source(msg));
 			printf("message_id: %i \n",hss->message_id);
 			printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
 			printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
@@ -61,6 +61,7 @@ implementation {
 					busy = TRUE;
 				}
 			}
+
 		}
 		return msg;
 	}
