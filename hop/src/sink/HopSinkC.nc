@@ -18,40 +18,85 @@ implementation {
 
   message_t pkt;
   bool busy = FALSE;
-  int lastDataId = -1;
+  int lastDataId = 0;
 
   // LIST LOGIC
   int c = 0;
-  RetransmissionObj *list[LISTSIZE];
+  struct RetransmissionObj list[LISTSIZE];
+  
+  //set initial values of the RetransmissionObjs
+  void initList(){
+	  int i;
+  for(i=0;i<LISTSIZE;i++){
+	  list[i].message_id=0;
+	  list[i].retries=0;
+  }
+  }
+  
+  
+  
+  struct RetransmissionObj* ro;
 
-  void insert(RetransmissionObj * item) {
+  void insert(int id) {
     int i;
     for (i = 0; i < LISTSIZE; i++) {
-      if (list[i] == NULL) {
-        list[i] = item;
-        printf("Inserting into missing packages id %i", item->message_id);
+      if (list[i].message_id == 0) {
+		  printf("---------------------------------------------------------------Inserting into missing packages id %i\n", id);
         printfflush();
+		list[i].message_id=id;
         return;
       }
     }
-    list[0] = item; // override first value
   }
 
   void remove(nx_uint16_t id) {
     int i;
     for (i = 0; i < LISTSIZE; i++) {
-      if (list[i]->message_id == id) {
-        list[i] = NULL;
+      if (list[i].message_id == id) {
+        list[i].message_id=0;
+		list[i].retries=0;
         return;
       }
     }
-    printf("Could not remove");
+    printf("Could not remove\n");
     printfflush();
+  }
+  
+  bool find(nx_uint16_t id){
+	  int i;
+    for (i = 0; i < LISTSIZE; i++) {
+      if (list[i].message_id == id) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+  
+  void sendRetransmissions(){
+	 int i;
+    for (i = 0; i < LISTSIZE; i++) {
+      if (list[i].message_id!=0) {		  
+        printf("Sending retransmission on id %i \n", list[i].message_id);
+        printfflush();
+		if(!busy){
+		Retransmission *rtpkt= (Retransmission *)call Packet.getPayload(&pkt,sizeof(Retransmission));
+		rtpkt->message_id=list[i].message_id;
+		
+		if (call AMSend.send(AM_BROADCAST_ADDR, &pkt,
+                             sizeof(Retransmission)) == SUCCESS) {
+          busy = TRUE;
+          printf("Sent !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+        }
+		}
+		
+      }
+    }
   }
   //
 
   event void Boot.booted() {
 
+initList();
     call AMControl.start();
     printf("Inside Boot.Booted\n");
     printfflush();
@@ -103,7 +148,13 @@ implementation {
       DataSend *data = (DataSend *)payload;
       int receivedId = data->message_id;
 
-      // todo Check if this is a retransmission
+      // todo Check if this is a retransmission, these should not trigger other retransmissions
+	  bool isRetransmission=FALSE;
+	  if(find(receivedId)){
+		  isRetransmission=TRUE;
+		  remove(receivedId);
+	  }
+	 
 
       if ((1 + lastDataId) != receivedId) {
         // Missed packages, use NAK
@@ -111,22 +162,30 @@ implementation {
         int i;
         for (i = 1; i <= missing; i++) {
           // Write down the missing packages
-          int id = (lastDataId + i);
-          RetransmissionObj *ro;
-          ro->message_id = id;
-          ro->retries = 0;
-          insert(ro);
+          int id = lastDataId + i;
+          insert(id);
+		  printf("id to add %i \n",id);
         }
         // Continue & forget the missing packages (we wrote them down)
-        printf("MISSED PACKAGES lastDataId was %i and receivedId was %i\n",
-               lastDataId, receivedId);
+        printf("MISSED PACKAGES lastDataId was %i and receivedId was %i missing %i packages\n",
+               lastDataId, receivedId, missing);
         printfflush();
-        
+        if(!isRetransmission){			
         lastDataId = receivedId;
+		}
       } else {
+		  if(!isRetransmission){			
         lastDataId = receivedId;
+		}
         printf("Got data, temperature is: %i\n", data->data_part);
       }
+	  
+	  
+	  //If this was not a retransmission, send retransmissions
+	  if(!isRetransmission){		  
+	  sendRetransmissions();
+	  }
+	  
     }
     return msg;
   }
