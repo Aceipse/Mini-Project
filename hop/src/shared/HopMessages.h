@@ -39,7 +39,7 @@ Retransmission;
 
 typedef nx_struct BaseMessage{
   nx_uint16_t message_type;
-}
+}BaseMessage;
 
 enum {
   LinkRequestId=1,

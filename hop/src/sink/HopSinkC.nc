@@ -147,7 +147,6 @@ initList();
         qu->message_id = hss->message_id;
         qu->lqi = call CC2420Packet.getLqi(msg);
         qu->rssi = call CC2420Packet.getRssi(msg);
-        qu->tx = 0;
 
         printf("Sending receive to: %i \n", call AMPacket.source(msg));
         printfflush();
