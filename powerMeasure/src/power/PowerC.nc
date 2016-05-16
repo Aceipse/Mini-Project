@@ -11,7 +11,7 @@
 // how much the current value should count (1-LAMBDA is history)
 #define LAMBDA 0.3
 // how much history to consider
-#define WIDTH 5
+#define WIDTH 4
 
 module PowerC {
   uses interface Boot;
@@ -33,7 +33,7 @@ implementation {
   bool RECEIVE = FALSE;
   bool TURN_OFF_RADIO = FALSE;
   bool TURN_ON_RADIO = FALSE;
-  bool EWMA = TRUE;
+  bool EWMA_DEBUG = TRUE;
 
   // EWMA begin
   // see example http://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm
@@ -45,23 +45,26 @@ implementation {
                          50.05, 49.38, 49.92, 50.73, 51.23, 51.94, 51.99};
   int testIdx = 0;
 
-  int ewma[WIDTH]; // todo initate with something sensible
+  int ewmaArr[WIDTH]; // todo initate with something sensible
   int ewma_i = 0;
+  double ewma = 0;
 
   double ewmaVal(double cur) {
     // Historical average
     double avg = 0;
     for (i = 0; i < WIDTH; i++) {
-      avg += ewma[i];
+      avg += ewmaArr[i];
     }
     avg /= WIDTH;
 
-    // Cur is now historical
-    ewma[ewma_i] = cur;
+    ewma = LAMBDA * cur + (1 - LAMBDA) * avg;
+
+    // ewma is now historical
+    ewmaArr[ewma_i] = ewma; //or cur?
     ewma_i = (ewma_i + 1) % WIDTH;
 
     // Return EWMA value
-    return LAMBDA * cur + (1 - LAMBDA) * avg;
+    return ewma;
   }
   // EWMA end
 
@@ -69,7 +72,7 @@ implementation {
     call CC2420Packet.setPower(&pkt, POWER);
 
     for (i = 0; i < WIDTH; i++) {
-      ewma[i] = 50; // init with something sensible
+      ewmaArr[i] = 50; // init with something sensible
     }
 
     if (!TURN_ON_RADIO) {
@@ -125,7 +128,7 @@ implementation {
       call AMControl.start();
       // Power usage after start?
     }
-    if (EWMA) {
+    if (EWMA_DEBUG) {
       double dCur = test_data[testIdx];
       int iCur = dCur * 100;
 
