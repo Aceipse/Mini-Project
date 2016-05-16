@@ -58,9 +58,8 @@ implementation {
     avg /= WIDTH;
 
     ewma = LAMBDA * cur + (1 - LAMBDA) * avg;
-
-    // ewma is now historical
     ewmaArr[ewma_i] = ewma; //or cur?
+    
     ewma_i = (ewma_i + 1) % WIDTH;
 
     // Return EWMA value
