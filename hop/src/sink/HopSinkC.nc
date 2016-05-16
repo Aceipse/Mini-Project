@@ -81,6 +81,7 @@ implementation {
 		if(!busy){
 		Retransmission *rtpkt= (Retransmission *)call Packet.getPayload(&pkt,sizeof(Retransmission));
 		rtpkt->message_id=list[i].message_id;
+    rtpkt->message_type=RetransmissionId;
 		
 		if (call AMSend.send(AM_BROADCAST_ADDR, &pkt,
                              sizeof(Retransmission)) == SUCCESS) {
@@ -105,6 +106,10 @@ initList();
   event void AMSend.sendDone(message_t * msg, error_t error) {
     if (&pkt == msg) {
       busy = FALSE;
+      
+      //Check if this was a retransmission and add 1 to retries if it was
+      //if(sizeof())
+      
     }
   }
 
@@ -118,9 +123,17 @@ initList();
 
   event message_t *Receive.receive(message_t * msg, void *payload,
                                    uint8_t len) {
-    if (len == sizeof(LinkRequest)) {
+                                     
+                                     
+                                     
+     BaseMessage *bm = (BaseMessage *)(call Packet.getPayload(
+            &pkt, sizeof(BaseMessage)));
+            
+            
+                                                                                                           
+    if (bm->message_type==LinkRequestId) {
       LinkRequest *hss = (LinkRequest *)payload;
-
+       
       printf("Got handshake message from: %i \n", call AMPacket.source(msg));
       printf("message_id: %i \n", hss->message_id);
       printf("Rssi: %i \n", call CC2420Packet.getRssi(msg));
@@ -130,10 +143,10 @@ initList();
       if (!busy) {
         LinkResponse *qu = (LinkResponse *)(call Packet.getPayload(
             &pkt, sizeof(LinkResponse)));
+        qu->message_type=LinkResponseId;
         qu->message_id = hss->message_id;
         qu->lqi = call CC2420Packet.getLqi(msg);
         qu->rssi = call CC2420Packet.getRssi(msg);
-        qu->tx = 0;
 
         printf("Sending receive to: %i \n", call AMPacket.source(msg));
         printfflush();
@@ -144,7 +157,7 @@ initList();
         }
       }
 
-    } else if (len == sizeof(DataSend)) {
+    } else if (bm->message_type == DataSendId) {
       DataSend *data = (DataSend *)payload;
       int receivedId = data->message_id;
 
