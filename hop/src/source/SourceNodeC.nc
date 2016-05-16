@@ -54,8 +54,8 @@ implementation {
    			LinkRequest* qu = (LinkRequest*)(call Packet.getPayload(&pkt, sizeof (LinkRequest)));
 		    qu->message_id = counterHand;
 		    
-   			//printf("Send packet %i, %i \n", counter, sizeof(LinkRequest));
-   			//printfflush();
+   			printf("LinkRequest %i \n", counterHand);
+   			printfflush();
 		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(LinkRequest)) == SUCCESS) {
 		      busy = TRUE;
 		    }
@@ -69,7 +69,7 @@ implementation {
    			counterData++;
 		    qu->message_id = counterData;
 		    qu->data_part = celsius;
-   			printf("Send packet %i, data: %i, to mote %i \n", counterData, celsius, idOfSink);
+   			printf("DataSend %i, to mote %i, data: %i \n", counterData, idOfSink, celsius);
    			printfflush();
 		    if (call AMSend.send(idOfSink, &pkt, sizeof(DataSend)) == SUCCESS) {
 		      busy = TRUE;
@@ -107,8 +107,8 @@ implementation {
 
 		//printf("Senderid: %i \n", call AMPacket.source(msg));
 	    //printf("Sender id: %i \n", btrpkt->receiver_id);
-	    printf("Recived from: %i \n",call AMPacket.source(msg));
-		//printfflush();
+	    printf("LinkResponse from: %i \n",call AMPacket.source(msg));
+		printfflush();
 		
 		call Timer1.startPeriodic(TIMER_PERIOD_MILLI);
 		

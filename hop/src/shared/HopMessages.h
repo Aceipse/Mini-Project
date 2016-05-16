@@ -4,7 +4,9 @@
 // Messages for protocol
 
 //Request link quality
-typedef nx_struct LinkRequest { nx_uint16_t message_id; }
+typedef nx_struct LinkRequest { 
+	nx_uint16_t message_id; 
+}
 LinkRequest;
 
 //Respond the link quality
@@ -33,17 +35,5 @@ typedef nx_struct Retransmission {
   nx_uint16_t rssi;
 }
 Retransmission;
-
-
-
-/*typedef  nx_struct DataReceive {
-nx_uint16_t message\_id
-nx_uint16_t sender\_id
-nx_uint16_t receiver\_id
-(lqi
-rssi
-tx)?
-data\_hash?
-} DataReceive; */
 
 #endif /* HOP_MESSAGES_H */
