@@ -1,10 +1,10 @@
 #include "../shared/Shared.h"
-configuration HopSinkAppC {
+configuration PowerAppC {
 }
 implementation {
 	components MainC;
 	components ActiveMessageC;
-	components HopSinkC as App;
+	components PowerC as App;
 	components new AMSenderC(AM_BLINKTORADIO);
 	components new AMReceiverC(AM_BLINKTORADIO);
 	components CC2420ActiveMessageC;
