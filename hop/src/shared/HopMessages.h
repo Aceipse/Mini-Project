@@ -6,7 +6,7 @@
 //Request link quality
 typedef nx_struct LinkRequest {
   nx_uint16_t message_type; 
-	nx_uint16_t message_id; 
+  nx_uint16_t message_id; 
 }
 LinkRequest;
 
@@ -39,7 +39,7 @@ Retransmission;
 
 typedef nx_struct BaseMessage{
   nx_uint16_t message_type;
-}
+} BaseMessage;
 
 enum {
   LinkRequestId=1,
