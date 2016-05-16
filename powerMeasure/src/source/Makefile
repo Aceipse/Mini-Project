@@ -1,0 +1,4 @@
+COMPONENT=SourceNodeAppC
+CFLAGS += "-DCC2420_DEF_RFPOWER=1"
+CFLAGS += -I$(TOSDIR)/lib/printf
+include $(MAKERULES)
