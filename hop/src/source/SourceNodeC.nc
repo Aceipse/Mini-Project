@@ -39,7 +39,7 @@ implementation {
 
 	event void AMControl.startDone(error_t err) {
 		if (err == SUCCESS) {
-	    	call TimerLinkReq.startPeriodic(TIMER_PERIOD_MILLI);
+	    	call TimerLinkReq.startPeriodic(REQUEST_PERIOD_MILLI);
 	    	call Timer2.startPeriodic(TEMP_PERIOD_MILLI);
 	    }
 	    else {
@@ -57,8 +57,6 @@ implementation {
 		    qu->message_type = LinkRequestId;
 		    qu->message_id = counterHand;
 		    
-   			//printf("LinkRequest %i \n", counterHand);
-   			//printfflush();
 		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(LinkRequest)) == SUCCESS) {
 		      busy = TRUE;
 		    }
@@ -66,18 +64,15 @@ implementation {
 	}
 	
 	event void TimerLinkChoosen.fired(){
-   		call TimerLinkReq.stop();
-		sendToId = fightId;
-		
-		printf("End the fight. Mote %i won ! \n", sendToId);
-		printfflush();
-		if(sendToId != 0){
+		if(fightId != 0){
+			sendToId = fightId;
+			
+			printf("End the fight. Mote %i won ! \n", sendToId);
+			printfflush();
+			
 			call TimerDataSend.stop();
 			call TimerDataSend.startPeriodic(TIMER_PERIOD_MILLI);
-		} 
-		else {  	
-	    	call TimerLinkReq.startPeriodic(TIMER_PERIOD_MILLI);
-	    }
+		}
 	    
 		firstLinkResponse = TRUE;
 	}
@@ -120,7 +115,7 @@ implementation {
 			firstLinkResponse = FALSE;
 			printf("Let the fight start \n");
 			printfflush();
-			call TimerLinkChoosen.startOneShot(5000);
+			call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
 	  	 }
 	  	 
 	  	 //Adjust LQI
@@ -137,17 +132,17 @@ implementation {
  	 	 if(fightLqi < (btrpkt->lqi)){
 			fightLqi = btrpkt->lqi;
 			fightId = call AMPacket.source(msg);
-		    printf("Retra best lqi: %i, %i \n", btrpkt->lqi, call AMPacket.source(msg));
-			printfflush();
+		    //printf("Retra best lqi: %i, %i \n", btrpkt->lqi, call AMPacket.source(msg));
+			//printfflush();
 		 }
 	  	 
 	  	 if (!busy) {
    			DataSend* qu = (DataSend*)(call Packet.getPayload(&pkt, sizeof (DataSend)));
-   			qu->message_type = DataSendId;
+   			qu->message_type = DataRetransmissionId;
 		    qu->message_id = btrpkt->message_id;
 		    
-   			//printf("RETRANSMITTED %i to mote: %i \n", btrpkt->message_id, call AMPacket.source(msg));
-   			//printfflush();
+   			printf("RETRANSMITTED %i to mote: %i \n", btrpkt->message_id, call AMPacket.source(msg));
+   			printfflush();
 		    if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(DataSend)) == SUCCESS) {
 		      busy = TRUE;
 		    }
@@ -163,7 +158,7 @@ implementation {
 			firstLinkResponse = FALSE;
 			printf("Let the fight start \n");
 			printfflush();
-			call TimerLinkChoosen.startOneShot(5000);
+			call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
 	  	}
 	  	
 	    //printf("LinkResponse from: %i, %i \n", call AMPacket.source(msg), lrPayload->lqi);
@@ -171,8 +166,6 @@ implementation {
 		if(fightLqi < (lrPayload->lqi)){
 			fightLqi = lrPayload->lqi;
 			fightId = call AMPacket.source(msg);
-		    printf("New best lqi: %i, %i \n", lrPayload->lqi, call AMPacket.source(msg));
-			printfflush();
 		}
 	  }
 	  return msg;
