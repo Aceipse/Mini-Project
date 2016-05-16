@@ -44,7 +44,8 @@ enum {
   LinkRequestId=1,
   LinkResponseId=2,
   DataSendId=3,
-  RetransmissionId=4  
+  RetransmissionId=4,
+  DataRetransmissionId=5  
 };
 
 #endif /* HOP_MESSAGES_H */
