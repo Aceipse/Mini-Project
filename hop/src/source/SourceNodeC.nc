@@ -10,6 +10,7 @@ module SourceNodeC {
    uses interface Leds;
    uses interface Timer<TMilli> as Timer0;
    uses interface Timer<TMilli> as Timer1;
+   uses interface Timer<TMilli> as Timer2;
    uses interface Read<uint16_t>;
    uses interface Packet;
    uses interface AMPacket;
@@ -20,7 +21,9 @@ module SourceNodeC {
 }
 implementation {   	   	
 	bool busy = FALSE;
+	bool tempWrite = FALSE;
 	message_t pkt;
+	uint32_t celsius = 0;
 	uint16_t counterHand = 0;
 	uint16_t counterData = 0;
 	uint16_t idOfSink = 3;
@@ -34,6 +37,7 @@ implementation {
 	event void AMControl.startDone(error_t err) {
 		if (err == SUCCESS) {
 	    	call Timer0.startPeriodic(TIMER_PERIOD_MILLI);
+	    	call Timer2.startPeriodic(TEMP_PERIOD_MILLI);
 	    }
 	    else {
 	      call AMControl.start();
@@ -51,21 +55,21 @@ implementation {
 		    qu->message_id = counterHand;
 		    
    			//printf("Send packet %i, %i \n", counter, sizeof(LinkRequest));
-   			printfflush();
+   			//printfflush();
 		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(LinkRequest)) == SUCCESS) {
 		      busy = TRUE;
 		    }
 	    }
 	}
 	
-		event void Timer1.fired() {
+	event void Timer1.fired() {
    		call Timer0.stop();
-   		if (!busy) {
+   		if (!busy && !tempWrite) {
    			DataSend* qu = (DataSend*)(call Packet.getPayload(&pkt, sizeof (DataSend)));
    			counterData++;
 		    qu->message_id = counterData;
-		    qu->data_part = "Nikolaj";
-   			printf("Send packet %i, %i \n", counterData, idOfSink);
+		    qu->data_part = celsius;
+   			printf("Send packet %i, data: %i, to mote %i \n", counterData, celsius, idOfSink);
    			printfflush();
 		    if (call AMSend.send(idOfSink, &pkt, sizeof(DataSend)) == SUCCESS) {
 		      busy = TRUE;
@@ -81,17 +85,16 @@ implementation {
 	}
 
 	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
-	  printf("Size of recived %i",len);
+	  //printf("Size of recived %i",len);
 	  if (len == sizeof(Retransmission))
 	  {
-	  	
 	  	 Retransmission* btrpkt = (Retransmission*)payload;
-	  	 printf("RETRANSMITTED Request reviced");
+	  	 //printf("RETRANSMITTED Request reviced");
 	  	 if (!busy) {
    			DataSend* qu = (DataSend*)(call Packet.getPayload(&pkt, sizeof (DataSend)));
 		    qu->message_id = btrpkt->message_id;
 		    
-   			printf("RETRANSMITTED %i \n", qu->message_id);
+   			printf("RETRANSMITTED %i \n to id: %i", qu->message_id, call AMPacket.source(msg));
    			printfflush();
 		    if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(DataSend)) == SUCCESS) {
 		      busy = TRUE;
@@ -125,29 +128,20 @@ implementation {
 			}
 			//call Timer1.startPeriodic(TIMER_PERIOD_MILLI);
 		}
-			    
-	    
-//		if(btrpkt->receiver_id == TOS_NODE_ID)
-//		{
-//			printf("Recived");
-//			//call Leds.set(btrpkt->message_id);
-//			//printf("Rssi: %i \n",call CC2420Packet.getRssi(msg));
-//			//printf("LQI: %i \n", call CC2420Packet.getLqi(msg));
-//			printfflush();
-//		}
 	  }
 	  return msg;
 	}
 	
-	event void Read.readDone(error_t result, uint16_t fahrenheit) 
-   	{
-		uint32_t celsius = (fahrenheit-3200)*0.55555;
-  	
-  		printf("C: %i \n", celsius);
-		printfflush();
-   	}
-
-	event void Timer1.fired(){
+	event void Timer2.fired(){
 		call Read.read();
 	}
+	
+	event void Read.readDone(error_t result, uint16_t fahrenheit) 
+   	{
+   		tempWrite = TRUE;
+		celsius = (fahrenheit-3200)*0.55555;
+   		tempWrite = FALSE;
+  		//printf("C: %i \n", celsius);
+		//printfflush();
+   	}
 }
