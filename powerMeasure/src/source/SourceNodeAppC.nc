@@ -9,15 +9,12 @@ implementation {
    components MainC;
    components LedsC;
    components SourceNodeC as App;
-   components new TimerMilliC() as TimerLinkReq;
-   components new TimerMilliC() as TimerLinkChoosen;
-   components new TimerMilliC() as TimerDataSend;
-   components new TimerMilliC() as Timer2;
+   components new TimerMilliC() as Timer0;
+   components new TimerMilliC() as Timer1;
    components ActiveMessageC;
    components new AMSenderC(AM_BLINKTORADIO);
    components new AMReceiverC(AM_BLINKTORADIO);
    components CC2420ActiveMessageC;
-   components new SensirionSht11C() as Sensor;
 
    App -> CC2420ActiveMessageC.CC2420Packet;
    App.Packet -> AMSenderC;
@@ -26,10 +23,7 @@ implementation {
    App.AMControl -> ActiveMessageC;
    App.Boot -> MainC;
    App.Leds -> LedsC;
-   App.TimerLinkReq -> TimerLinkReq;
-   App.TimerLinkChoosen -> TimerLinkChoosen;
-   App.TimerDataSend -> TimerDataSend;
-   App.Timer2 -> Timer2;
+   App.Timer0 -> Timer0;
+   App.Timer1 -> Timer1;
    App.Receive -> AMReceiverC;
-   App.Read -> Sensor.Temperature;
 }

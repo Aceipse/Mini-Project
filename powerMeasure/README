@@ -1,0 +1,13 @@
+Assigment for Wireless Sensor Networks and Electronics TIWSNE 2016.
+Tested on telosb.
+
+Structure:
+
+shared:
+Contains code shared between sink and source. Such as datatypes, definitions etc.
+
+sink:
+Source code for the sink - receiving end - of the data.
+
+source:
+Source code for the source - sending end. Data collected could be from sensors etc.
