@@ -9,6 +9,8 @@ module SourceNodeC {
    uses interface Boot;
    uses interface Leds;
    uses interface Timer<TMilli> as Timer0;
+   uses interface Timer<TMilli> as Timer1;
+   uses interface Read<uint16_t>;
    uses interface Packet;
    uses interface AMPacket;
    uses interface AMSend;
@@ -21,7 +23,6 @@ implementation {
 	message_t pkt;
 	uint16_t counter = 0;
 	int history_size = 10;
-	//History* history[ history_size ];
  
 	event void Boot.booted() {
 		call AMControl.start();
@@ -76,5 +77,17 @@ implementation {
 //		}
 	  }
 	  return msg;
+	}
+	
+	event void Read.readDone(error_t result, uint16_t fahrenheit) 
+   	{
+		uint32_t celsius = (fahrenheit-3200)*0.55555;
+  	
+  		printf("C: %i \n", celsius);
+		printfflush();
+   	}
+
+	event void Timer1.fired(){
+		call Read.read();
 	}
 }

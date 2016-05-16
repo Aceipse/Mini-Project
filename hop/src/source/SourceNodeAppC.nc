@@ -14,6 +14,7 @@ implementation {
    components new AMSenderC(AM_BLINKTORADIO);
    components new AMReceiverC(AM_BLINKTORADIO);
    components CC2420ActiveMessageC;
+   components new SensirionSht11C() as Sensor;
 
    App -> CC2420ActiveMessageC.CC2420Packet;
    App.Packet -> AMSenderC;
@@ -24,4 +25,5 @@ implementation {
    App.Leds -> LedsC;
    App.Timer0 -> Timer0;
    App.Receive -> AMReceiverC;
+   App.Read -> Sensor.Temperature;
 }
