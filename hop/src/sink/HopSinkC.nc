@@ -197,12 +197,12 @@ initList();
         }
       //}
 
-    } else if (bm->message_type == DataSendId) {
+    } else if (bm->message_type == DataSendId||bm->message_type==DataRetransmissionId) {
       DataSend *data = (DataSend *)payload;
       int receivedId = data->message_id;
 
       // todo Check if this is a retransmission, these should not trigger other retransmissions
-	  bool isRetransmission=FALSE;
+	  bool isRetransmission=bm->message_type==DataRetransmissionId;
 	  if(find(receivedId)){
 		  isRetransmission=TRUE;
 		  remove(receivedId);
