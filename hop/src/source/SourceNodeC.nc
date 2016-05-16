@@ -28,8 +28,9 @@ implementation {
 	uint32_t celsius = 0;
 	uint16_t counterHand = 0;
 	uint16_t counterData = 0;
+	uint16_t fightId = 0;
+	uint16_t fightLqi = 0;
 	uint16_t sendToId = 0;
-	uint16_t sendToLqi = 0;
  
 	event void Boot.booted() {
 		call AMControl.start();
@@ -38,7 +39,7 @@ implementation {
 
 	event void AMControl.startDone(error_t err) {
 		if (err == SUCCESS) {
-	    	call TimerLinkReq.startPeriodic(TIMER_PERIOD_MILLI);
+	    	call TimerLinkReq.startPeriodic(REQUEST_PERIOD_MILLI);
 	    	call Timer2.startPeriodic(TEMP_PERIOD_MILLI);
 	    }
 	    else {
@@ -56,8 +57,6 @@ implementation {
 		    qu->message_type = LinkRequestId;
 		    qu->message_id = counterHand;
 		    
-   			printf("LinkRequest %i \n", counterHand);
-   			printfflush();
 		    if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(LinkRequest)) == SUCCESS) {
 		      busy = TRUE;
 		    }
@@ -65,23 +64,21 @@ implementation {
 	}
 	
 	event void TimerLinkChoosen.fired(){
-   		call TimerLinkReq.stop();
-		call TimerLinkChoosen.stop();
-		
-		if(sendToId != 0){
+		if(fightId != 0){
+			sendToId = fightId;
+			
+			printf("End the fight. Mote %i won ! \n", sendToId);
+			printfflush();
+			
+			call TimerDataSend.stop();
 			call TimerDataSend.startPeriodic(TIMER_PERIOD_MILLI);
-		} 
-		else {
-			sendToId = 0;
-			sendToLqi = 0;    	
-	    	call TimerLinkReq.startPeriodic(TIMER_PERIOD_MILLI);
-	    }
+		}
 	    
-		firstLinkResponse = FALSE;
+		firstLinkResponse = TRUE;
 	}
 	
 	event void TimerDataSend.fired() {
-   		if (!busy && !tempWrite) {
+   		if (!busy && !tempWrite && sendToId != 0) {
    			DataSend* qu = (DataSend*)(call Packet.getPayload(&pkt, sizeof (DataSend)));
    			counterData++;
    			qu->message_type = DataSendId;
@@ -101,7 +98,6 @@ implementation {
 
 	event void AMSend.sendDone(message_t* msg, error_t error) {
 		if (&pkt == msg) {
-			//printf("Power on send: %i \n",call CC2420Packet.getPower(msg));
 			busy = FALSE;
 		}
 	}
@@ -114,36 +110,38 @@ implementation {
 	  	 Retransmission* btrpkt = (Retransmission*)payload;
 	  	 
 	  	 if(firstLinkResponse){
+			fightId = 0;
+			fightLqi = 0;  
 			firstLinkResponse = FALSE;
-			call TimerDataSend.stop();
-			call TimerLinkChoosen.startPeriodic(5000);
+			printf("Let the fight start \n");
+			printfflush();
+			call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
 	  	 }
 	  	 
 	  	 //Adjust LQI
-	  	 if(btrpkt->lqi == 0){
+	  	 if((btrpkt->lqi) == 0){
   	 	 	//FROM MOTEC
   	 	 	btrpkt->lqi = call CC2420Packet.getLqi(msg);
   	 	 }
   	 	 else {
  	 	 	//FROM MOTEB
- 	 	 	nx_uint16_t tmp = btrpkt->lqi;
- 	 	 	btrpkt->lqi = ((call CC2420Packet.getLqi(msg)) + tmp) / 2;
+ 	 	 	btrpkt->lqi = ((call CC2420Packet.getLqi(msg)) + (btrpkt->lqi)) / 2;
  	 	 }
  	 	 
  	 	 //SAVE THE BEST LQI
- 	 	 if(sendToLqi < (btrpkt->lqi)){
-			sendToLqi = btrpkt->lqi;
-			sendToId = call AMPacket.source(msg);
-		    printf("Retra best lqi: %i, %i \n", btrpkt->lqi, call AMPacket.source(msg));
-			printfflush();
+ 	 	 if(fightLqi < (btrpkt->lqi)){
+			fightLqi = btrpkt->lqi;
+			fightId = call AMPacket.source(msg);
+		    //printf("Retra best lqi: %i, %i \n", btrpkt->lqi, call AMPacket.source(msg));
+			//printfflush();
 		 }
 	  	 
 	  	 if (!busy) {
    			DataSend* qu = (DataSend*)(call Packet.getPayload(&pkt, sizeof (DataSend)));
-   			qu->message_type = DataSendId;
+   			qu->message_type = DataRetransmissionId;
 		    qu->message_id = btrpkt->message_id;
 		    
-   			printf("RETRANSMITTED %i \n to id: %i", qu->message_id, call AMPacket.source(msg));
+   			printf("RETRANSMITTED %i to mote: %i \n", btrpkt->message_id, call AMPacket.source(msg));
    			printfflush();
 		    if (call AMSend.send(call AMPacket.source(msg), &pkt, sizeof(DataSend)) == SUCCESS) {
 		      busy = TRUE;
@@ -155,17 +153,19 @@ implementation {
 	    LinkResponse* lrPayload = (LinkResponse*)payload;
 	    
 	  	if(firstLinkResponse){
+			fightId = 0;
+			fightLqi = 0;
 			firstLinkResponse = FALSE;
-			call TimerLinkChoosen.startPeriodic(5000);
+			printf("Let the fight start \n");
+			printfflush();
+			call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
 	  	}
 	  	
-	    printf("LinkResponse from: %i, %i \n", call AMPacket.source(msg), lrPayload->lqi);
-		printfflush();
-		if(sendToLqi < (lrPayload->lqi)){
-			sendToLqi = lrPayload->lqi;
-			sendToId = call AMPacket.source(msg);
-		    printf("New best lqi: %i, %i \n", lrPayload->lqi, call AMPacket.source(msg));
-			printfflush();
+	    //printf("LinkResponse from: %i, %i \n", call AMPacket.source(msg), lrPayload->lqi);
+		//printfflush();
+		if(fightLqi < (lrPayload->lqi)){
+			fightLqi = lrPayload->lqi;
+			fightId = call AMPacket.source(msg);
 		}
 	  }
 	  return msg;
