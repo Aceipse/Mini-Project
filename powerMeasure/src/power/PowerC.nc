@@ -7,11 +7,10 @@
 #define POWER 3
 #define TIMER_MS 1000
 
-// EWMA
-// how much the current value should count (1-LAMBDA is history)
+// how much the current value should count (1-LAMBDA is history) in the EWMA
 #define LAMBDA 0.3
-// how much history to consider
-#define WIDTH 4
+// how much history to consider in the EWMA
+#define WIDTH 10
 
 module PowerC {
   uses interface Boot;
@@ -45,24 +44,26 @@ implementation {
                          50.05, 49.38, 49.92, 50.73, 51.23, 51.94, 51.99};
   int testIdx = 0;
 
-  int ewmaArr[WIDTH]; // todo initate with something sensible
-  int ewma_i = 0;
+  int ewmaArr[WIDTH];  // todo initate with something sensible
+  int ewmaIdx = 0;
   double ewma = 0;
+  double ewmaHis = 0;
 
   double ewmaVal(double cur) {
-    // Historical average
-    double avg = 0;
-    for (i = 0; i < WIDTH; i++) {
-      avg += ewmaArr[i];
+    if (ewmaIdx == 0) {
+      double sum = 0;
+      for (i = 0; i < WIDTH; i++) {
+        sum += ewmaArr[i];
+      }
+      ewmaHis = sum/WIDTH;
     }
-    avg /= WIDTH;
 
-    ewma = LAMBDA * cur + (1 - LAMBDA) * avg;
-    ewmaArr[ewma_i] = ewma; //or cur?
+    ewma = LAMBDA * cur + (1 - LAMBDA) * ewmaHis;
+    ewmaHis = ewma;
     
-    ewma_i = (ewma_i + 1) % WIDTH;
+    ewmaArr[ewmaIdx] = cur;
+    ewmaIdx = (ewmaIdx + 1) % WIDTH;
 
-    // Return EWMA value
     return ewma;
   }
   // EWMA end
@@ -71,7 +72,7 @@ implementation {
     call CC2420Packet.setPower(&pkt, POWER);
 
     for (i = 0; i < WIDTH; i++) {
-      ewmaArr[i] = 50; // init with something sensible
+      ewmaArr[i] = 50;  // init with something sensible
     }
 
     if (!TURN_ON_RADIO) {
@@ -103,12 +104,12 @@ implementation {
 
   event void Timer0.fired() {
     /*printf("Size of message_t %i\n", sizeof(pkt));
-    printf("Size of bool %i\n", sizeof(busy));*/
+printf("Size of bool %i\n", sizeof(busy));*/
     if (SEND) {
       // Also listening
       if (!busy) {
-        LinkRequest *qu =
-            (LinkRequest *)(call Packet.getPayload(&pkt, sizeof(LinkRequest)));
+        LinkRequest* qu =
+            (LinkRequest*)(call Packet.getPayload(&pkt, sizeof(LinkRequest)));
         qu->message_id = 1;
         if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(LinkRequest)) ==
             SUCCESS) {
@@ -132,7 +133,7 @@ implementation {
       int iCur = dCur * 100;
 
       double dEmwa = ewmaVal(dCur);
-      int iEmwa = dEmwa * 100; // retain two decimals
+      int iEmwa = dEmwa * 100;  // retain two decimals
 
       int iCmp = test_cmp[testIdx] * 100;
       testIdx = (testIdx + 1) % 21;
@@ -141,13 +142,13 @@ implementation {
       printf("Current value is %i and EMWA value is %i. Diff %i\n", iCur, iEmwa,
              (iCur - iEmwa));
       printf("Diff my EMWA and book %i\n\n",
-             (iEmwa - iCmp)); // only makes sense up till testIdx = 20
+             (iEmwa - iCmp));  // only makes sense up till testIdx = 20
 
       printfflush();
     }
   }
 
-  event message_t *Receive.receive(message_t * msg, void *payload,
+  event message_t* Receive.receive(message_t * msg, void* payload,
                                    uint8_t len) {
     printf("Receive data\n");
     printfflush();
