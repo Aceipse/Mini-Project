@@ -6,7 +6,7 @@
 //Request link quality
 typedef nx_struct LinkRequest {
   nx_uint16_t message_type; 
-	nx_uint16_t message_id; 
+  nx_uint16_t message_id; 
 }
 LinkRequest;
 
@@ -39,13 +39,13 @@ Retransmission;
 
 typedef nx_struct BaseMessage{
   nx_uint16_t message_type;
-}
-
+} BaseMessage;
 enum {
   LinkRequestId=1,
   LinkResponseId=2,
   DataSendId=3,
-  RetransmissionId=4  
+  RetransmissionId=4,
+  DataRetransmissionId=5  
 };
 
 #endif /* HOP_MESSAGES_H */
