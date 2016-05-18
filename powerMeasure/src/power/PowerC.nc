@@ -1,4 +1,5 @@
 #include "../shared/HopMessages.h"
+#include "ewma.h"
 #include "TransmissionObj.h"
 #include "printf.h"
 #include <stdio.h>
@@ -6,11 +7,6 @@
 // Power debug
 #define POWER 3
 #define TIMER_MS 1000
-
-// how much the current value should count (1-LAMBDA is history) in the EWMA
-#define LAMBDA 0.2
-// how much history to consider in the EWMA
-#define WIDTH 10
 
 module PowerC {
   uses interface Boot;
@@ -34,12 +30,18 @@ implementation {
   bool TURN_ON_RADIO = FALSE;
   bool EWMA_DEBUG = TRUE;
 
+  struct EwmaObj ewma1;
+  struct EwmaObj ewma2;
+  
+  int testData = 1;
+  int integerPrint = -1;  //because we cant print double
+
+  /*
   // EWMA begin
   // see example http://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm
   int ewmaIdx = 0;
   double ewma = 0;
   double ewmaHis = 0;
-
   double ewmaVal(double cur) {
     ewma = LAMBDA * cur + (1 - LAMBDA) * ewmaHis;
     ewmaHis = ewma;
@@ -48,15 +50,21 @@ implementation {
     return ewma;
   }
   // EWMA end
+  */
 
   event void Boot.booted() {
     call CC2420Packet.setPower(&pkt, POWER);
-    ewmaHis = 50;  // init with data like this: ewmaHis += data/WIDTH or use
-                    // some estimate mean
 
+    // Initiate with sensible, or average over some values
+    ewma1.his = 50;
+    ewma1.cur = 0;
+    
+    ewma2.his = 50;
+    ewma2.cur = 0;
+    
     if (!TURN_ON_RADIO && (SEND || RECEIVE)) {
       call AMControl.start();
-      
+
     } else {
       call Timer0.startPeriodic(TIMER_MS);
     }
@@ -109,7 +117,16 @@ printf("Size of bool %i\n", sizeof(busy));*/
       // Power usage after start?
     }
     if (EWMA_DEBUG) {
-      double dCur = ewmaIdx % 2 == 0 ? -4 : 5;
+      
+      testData = testData == 1 ? 2 : 1;
+      printf("testData %i\n", testData);
+      ewmaVal(&ewma1, testData);      
+      integerPrint = ewma1.cur * 100;
+      printf("ewma1 cur %i\n\n", integerPrint);
+
+      printfflush();
+
+      /*double dCur = ewmaIdx % 2 == 0 ? -4 : 5;
       int iCur = dCur * 1;
 
       double dEmwa = ewmaVal(dCur);
@@ -119,7 +136,7 @@ printf("Size of bool %i\n", sizeof(busy));*/
       printf("Current value is %i and EMWA value is %i. Diff %i\n", iCur, iEmwa,
              (iCur - iEmwa));
 
-      printfflush();
+      printfflush();*/
     }
   }
 
