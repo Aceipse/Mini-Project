@@ -84,8 +84,8 @@ implementation {
    			qu->message_type = DataSendId;
 		    qu->message_id = counterData;
 		    qu->data_part = celsius;
-   			printf("DataSend %i, to mote %i, data: %i \n", counterData, sendToId, celsius);
-   			printfflush();
+   			//printf("DataSend %i, to mote %i, data: %i \n", counterData, sendToId, celsius);
+   			//printfflush();
 		    if (call AMSend.send(sendToId, &pkt, sizeof(DataSend)) == SUCCESS) {
 		      busy = TRUE;
 		    }
@@ -161,8 +161,8 @@ implementation {
 			call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
 	  	}
 	  	
-	    //printf("LinkResponse from: %i, %i \n", call AMPacket.source(msg), lrPayload->lqi);
-		//printfflush();
+	    printf("LinkResponse from: %i, LQI: %i RSSI: %i\n", call AMPacket.source(msg), lrPayload->lqi,lrPayload->rssi);
+		printfflush();
 		if(fightLqi < (lrPayload->lqi)){
 			fightLqi = lrPayload->lqi;
 			fightId = call AMPacket.source(msg);
