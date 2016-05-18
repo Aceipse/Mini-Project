@@ -4,6 +4,7 @@
 #include "../shared/Shared.h"
 #include "../shared/HopMessages.h"
 #include "SourceNode.h"
+#include "ewma.h"
  
 module SourceNodeC {
    uses interface Boot;
@@ -32,10 +33,20 @@ implementation {
 	uint16_t fightId = 0;
 	int16_t fightRssi = -250;
 	uint16_t sendToId = 0;
+	
+	struct EwmaObj ewma1;
+  	struct EwmaObj ewma2;
  
 	event void Boot.booted() {
 		call AMControl.start();
 		call CC2420Packet.setPower(&pkt,POWERSETTING);
+		
+		// Initiate with sensible, or average over some values
+    	ewma1.his = 50;
+    	ewma1.cur = 0;
+    
+    	ewma2.his = 50;
+    	ewma2.cur = 0;
   	}
 
 	event void AMControl.startDone(error_t err) {
