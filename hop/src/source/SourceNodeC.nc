@@ -34,19 +34,19 @@ implementation {
 	int16_t fightRssi = -250;
 	uint16_t sendToId = 0;
 	
-	struct EwmaObj ewma1;
-  	struct EwmaObj ewma2;
+	struct EwmaObj ewmaB;
+  	struct EwmaObj ewmaC;
  
 	event void Boot.booted() {
 		call AMControl.start();
 		call CC2420Packet.setPower(&pkt,POWERSETTING);
 		
 		// Initiate with sensible, or average over some values
-    	ewma1.his = 50;
-    	ewma1.cur = 0;
+    	ewmaB.his = 50;
+    	ewmaB.cur = 0;
     
-    	ewma2.his = 50;
-    	ewma2.cur = 0;
+    	ewmaC.his = 50;
+    	ewmaC.cur = 0;
   	}
 
 	event void AMControl.startDone(error_t err) {
@@ -85,9 +85,18 @@ implementation {
 	
 	event void TimerLinkChoosen.fired(){
 		call TimerLinkReq.stop();
+		
+		//Which link is best?
+		if(ewmaB.cur > ewmaC.cur) {
+			fightId = AM_NODEB;
+		} else {
+			fightId = AM_NODEC;
+		}
+		
 		if(fightId != 0){
 			sendToId = fightId;
 			
+			printf("EWMA B: %i C: %i\n", (int)(100*ewmaB.cur), (int)(100*ewmaC.cur));
 			printf("END ----------- Mote %i is new endpoint ! \n", sendToId);
 			printfflush();
 			
@@ -157,11 +166,17 @@ implementation {
  	 	 }
  	 	 
  	 	 printf("RetraResponse from: %i, LQI: %i RSSI: %i\n", call AMPacket.source(msg), btrpkt->lqi,btrpkt->rssi);
- 	 	 //SAVE THE BEST LQI
- 	 	 if(fightRssi < (btrpkt->rssi)){
+ 	 	 //SAVE THE BEST RSSI
+		 if(AMPacket.source(msg) == AM_NODEB) {
+			ewmaVal(&ewmaB, (btrpkt->rssi));
+		 } else if(AMPacket.source(msg) == AM_NODEC) {
+			ewmaVal(&ewmaC, (btrpkt->rssi));
+		 }
+			
+ 	 	 /*if(fightRssi < (btrpkt->rssi)){
 			fightRssi = btrpkt->rssi;
 			fightId = call AMPacket.source(msg);
-		 }
+		 }*/
 	  	 
 	  	 if (!busy) {
    			DataSend* qu = (DataSend*)(call Packet.getPayload(&pkt, sizeof (DataSend)));
@@ -181,10 +196,17 @@ implementation {
 	    
 	  	printf("LinkResponse from: %i, LQI: %i RSSI: %i\n", call AMPacket.source(msg), lrPayload->lqi,lrPayload->rssi);
 		printfflush();
-		if(fightRssi < (lrPayload->rssi)){
+		
+		if(AMPacket.source(msg) == AM_NODEB) {
+			ewmaVal(&ewmaB, (lrPayload->rssi));
+		} else if(AMPacket.source(msg) == AM_NODEC) {
+			ewmaVal(&ewmaC, (lrPayload->rssi));
+		}
+		
+		/*if(fightRssi < (lrPayload->rssi)){
 			fightRssi = lrPayload->rssi;
 			fightId = call AMPacket.source(msg);
-		}
+		}*/
 	  }
 	  return msg;
 	}
