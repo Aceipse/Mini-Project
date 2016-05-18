@@ -1,6 +1,8 @@
 #ifndef SHARED_H
 #define SHARED_H
 
+#define POWERSETTING 3
+
 enum {
   AM_BLINKTORADIO = 6,
   PACKET_SIZE = 128,
