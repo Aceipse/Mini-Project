@@ -1,5 +1,5 @@
  #include <Timer.h>
- #include "RelayNode.h"
+#include "../shared/Shared.h"
  
  configuration RelayNodeAppC {
  }

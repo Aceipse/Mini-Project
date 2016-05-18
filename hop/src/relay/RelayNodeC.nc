@@ -1,6 +1,8 @@
- #include "RelayNode.h"
- #include <printf.h>
- #include "Timer.h"
+#include <printf.h>
+#include <stdio.h>
+#include "Timer.h"
+#include "../shared/Shared.h"
+#include "../shared/HopMessages.h"
  
   module RelayNodeC {
    uses interface Boot;
