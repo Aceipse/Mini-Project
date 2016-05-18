@@ -25,7 +25,6 @@ module SourceNodeC {
 implementation {   	   	
 	bool busy = FALSE;
 	bool tempWrite = FALSE;
-//	bool firstLinkResponse = TRUE;
 	message_t pkt;
 	uint32_t celsius = 0;
 	uint16_t counterHand = 0;
@@ -34,19 +33,29 @@ implementation {
 	int16_t fightRssi = -250;
 	uint16_t sendToId = 0;
 	
+	bool requestFromB = FALSE;
+	bool requestFromC = FALSE;
 	struct EwmaObj ewmaB;
   	struct EwmaObj ewmaC;
+	struct EwmaObj ewmaRetrans;
  
 	event void Boot.booted() {
 		call AMControl.start();
 		call CC2420Packet.setPower(&pkt,POWERSETTING);
 		
 		// Initiate with sensible, or average over some values
-    	ewmaB.his = 50;
+    	ewmaB.his = -10;
     	ewmaB.cur = 0;
-    
-    	ewmaC.his = 50;
+    	ewmaB.lambda = 0.3;
+    	    
+    	ewmaC.his = -10;
     	ewmaC.cur = 0;
+    	ewmaC.lambda = 0.3;
+    	
+    	// Initiate with sensible, or average over some values
+    	ewmaRetrans.his = 100;
+    	ewmaRetrans.cur = 100;
+    	ewmaRetrans.lambda = 0.005;
   	}
 
 	event void AMControl.startDone(error_t err) {
@@ -65,8 +74,8 @@ implementation {
    	event void TimerBetweenLinkReqs.fired() {
 		fightId = 0;
 		fightRssi = -250;
-		printf("START ----------- fight \n");
-		printfflush();
+		requestFromB = FALSE;
+		requestFromC = FALSE;
 		call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
    		call TimerLinkReq.startPeriodic(REQUEST_PERIOD_MILLI);
 	}
@@ -87,16 +96,25 @@ implementation {
 		call TimerLinkReq.stop();
 		
 		//Which link is best?
-		if(ewmaB.cur > ewmaC.cur) {
-			fightId = AM_NODEB;
-		} else {
-			fightId = AM_NODEC;
+		if(requestFromC && ewmaRetrans.cur > 94.0){
+			fightId = AM_NODEC;	
 		}
+		else if(requestFromB && requestFromC)
+		{	
+			if(ewmaB.cur > ewmaC.cur) {
+				fightId = AM_NODEB;
+			} else {
+				fightId = AM_NODEC;
+			}
+		} 
+		else if(requestFromB) {
+			fightId = AM_NODEB;
+		} 
 		
 		if(fightId != 0){
 			sendToId = fightId;
 			
-			printf("EWMA B: %i C: %i\n", (int)(100*ewmaB.cur), (int)(100*ewmaC.cur));
+			printf("EWMA B: %i C: %i, Retra: %i \n", (int)(100*ewmaB.cur), (int)(100*ewmaC.cur), (int)(100*ewmaRetrans.cur));
 			printf("END ----------- Mote %i is new endpoint ! \n", sendToId);
 			printfflush();
 			
@@ -108,11 +126,9 @@ implementation {
 			}
 		}
 		//NO FOUND, STOP DATA 
-		/* else if(call TimerDataSend.isRunning()) {
-		    printf("STOPPED DATA !");
-			printfflush();
+		else if(call TimerDataSend.isRunning()) {
 			call TimerDataSend.stop();
-		}*/
+		}
 	}
 	
 	event void TimerDataSend.fired() {
@@ -125,6 +141,7 @@ implementation {
    			//printf("DataSend %i, to mote %i, data: %i \n", counterData, sendToId, celsius);
    			//printfflush();
 		    if (call AMSend.send(sendToId, &pkt, sizeof(DataSend)) == SUCCESS) {
+		      ewmaVal(&ewmaRetrans, 100);
 		      busy = TRUE;
 		    }
 	    }
@@ -150,34 +167,31 @@ implementation {
 	  	 if(!(call TimerLinkChoosen.isRunning())){
 			fightId = 0;
 			fightRssi = -250;
-			printf("START ----------- fight \n");
-			printfflush();
+			requestFromB = FALSE;
+			requestFromC = FALSE;
 			call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
 	  	 }
-	  	 
-	  	 //Adjust LQI
-	  	 if((btrpkt->rssi) == 0){
-  	 	 	//FROM MOTEC
-  	 	 	btrpkt->rssi = call CC2420Packet.getRssi(msg);
-  	 	 }
-  	 	 else {
- 	 	 	//FROM MOTEB
- 	 	 	btrpkt->rssi = ((call CC2420Packet.getRssi(msg)) + (btrpkt->rssi)) / 2;
- 	 	 }
  	 	 
- 	 	 printf("RetraResponse from: %i, LQI: %i RSSI: %i\n", call AMPacket.source(msg), btrpkt->lqi,btrpkt->rssi);
- 	 	 //SAVE THE BEST RSSI
-		 if(AMPacket.source(msg) == AM_NODEB) {
+ 	 	 //SAVE THE BEST LINK
+		 if((call AMPacket.source(msg)) == AM_NODEB) {
+		 	//The worst rssi
+		 	btrpkt->rssi = (call CC2420Packet.getRssi(msg)) > btrpkt->rssi ? btrpkt->rssi : (call CC2420Packet.getRssi(msg));
+		 	
+		 	//Update ewma values
+		 	requestFromB = TRUE;
 			ewmaVal(&ewmaB, (btrpkt->rssi));
-		 } else if(AMPacket.source(msg) == AM_NODEC) {
+		 } else if((call AMPacket.source(msg)) == AM_NODEC) {
+  	 	 	//The worst rssi
+  	 	 	btrpkt->rssi = call CC2420Packet.getRssi(msg);
+		 	
+		 	//Update ewma values
+		 	ewmaVal(&ewmaRetrans, 0);
+		 	requestFromC = TRUE;
 			ewmaVal(&ewmaC, (btrpkt->rssi));
 		 }
-			
- 	 	 /*if(fightRssi < (btrpkt->rssi)){
-			fightRssi = btrpkt->rssi;
-			fightId = call AMPacket.source(msg);
-		 }*/
-	  	 
+		 
+		 printf("Retransmission from mote %i, LQI: %i RSSI: %i\n", call AMPacket.source(msg), btrpkt->lqi, btrpkt->rssi);
+ 	 	 	  	 
 	  	 if (!busy) {
    			DataSend* qu = (DataSend*)(call Packet.getPayload(&pkt, sizeof (DataSend)));
    			qu->message_type = DataRetransmissionId;
@@ -197,16 +211,14 @@ implementation {
 	  	printf("LinkResponse from: %i, LQI: %i RSSI: %i\n", call AMPacket.source(msg), lrPayload->lqi,lrPayload->rssi);
 		printfflush();
 		
-		if(AMPacket.source(msg) == AM_NODEB) {
+		if((call AMPacket.source(msg)) == AM_NODEB) {
+			requestFromB = TRUE;
 			ewmaVal(&ewmaB, (lrPayload->rssi));
-		} else if(AMPacket.source(msg) == AM_NODEC) {
+		} else if((call AMPacket.source(msg)) == AM_NODEC) {
+			requestFromC = TRUE;
 			ewmaVal(&ewmaC, (lrPayload->rssi));
 		}
 		
-		/*if(fightRssi < (lrPayload->rssi)){
-			fightRssi = lrPayload->rssi;
-			fightId = call AMPacket.source(msg);
-		}*/
 	  }
 	  return msg;
 	}
