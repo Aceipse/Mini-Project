@@ -9,6 +9,7 @@ implementation {
    components MainC;
    components LedsC;
    components SourceNodeC as App;
+   components new TimerMilliC() as TimerBetweenLinkReqs;
    components new TimerMilliC() as TimerLinkReq;
    components new TimerMilliC() as TimerLinkChoosen;
    components new TimerMilliC() as TimerDataSend;
@@ -26,6 +27,7 @@ implementation {
    App.AMControl -> ActiveMessageC;
    App.Boot -> MainC;
    App.Leds -> LedsC;
+   App.TimerBetweenLinkReqs -> TimerBetweenLinkReqs;
    App.TimerLinkReq -> TimerLinkReq;
    App.TimerLinkChoosen -> TimerLinkChoosen;
    App.TimerDataSend -> TimerDataSend;
