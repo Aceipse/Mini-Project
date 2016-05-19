@@ -4,6 +4,7 @@
 #include "TransmissionObj.h"
 #include "printf.h"
 #include <stdio.h>
+#include <Timer.h>
 
 module HopSinkC {
   uses interface Boot;
@@ -13,13 +14,21 @@ module HopSinkC {
   uses interface SplitControl as AMControl;
   uses interface Receive;
   uses interface CC2420Packet;
+  uses interface Timer<TMilli> as RetryTimer;
 }
 implementation {
 
   message_t pkt;
   bool busy = FALSE;
   bool firstDataReceive=TRUE;
+  bool resendBool=TRUE;
   int lastDataId = 0;
+  
+  //Retry timer data
+  int sourceToSendTo;
+  message_t msgToResend;
+  
+  
 
   // LIST LOGIC
   int c = 0;
@@ -137,6 +146,24 @@ initList();
     printfflush();
   }
 
+event void RetryTimer.fired(){
+  printf("Inside timer\n");
+  printfflush();
+   if(call AMSend.send(sourceToSendTo, &pkt,
+                             sizeof(LinkResponse))==SUCCESS){
+//Dont reschedule
+printf("Success inside timer\n");
+  printfflush();
+
+                             }else{
+                               printf("Error inside timer\n");
+  printfflush();
+                               call RetryTimer.startOneShot(10);
+                             }        
+  
+}
+
+
   event void AMSend.sendDone(message_t * msg, error_t error) {
     if (&pkt == msg) {
       BaseMessage *bmpkt= (BaseMessage *)call Packet.getPayload(&pkt,sizeof(BaseMessage));
@@ -150,6 +177,9 @@ initList();
           Retransmission *rtpkt= (Retransmission *)call Packet.getPayload(&pkt,sizeof(Retransmission));
         incrementRetransmissionCounter(rtpkt->message_id);
       }
+      }else{
+        printf("---------------------ERROR------------------");
+        printfflush();
       }
       
       
@@ -188,12 +218,19 @@ initList();
         qu->lqi = call CC2420Packet.getLqi(msg);
         qu->rssi = call CC2420Packet.getRssi(msg);
 
-        printf("Sending receive to: %i \n", call AMPacket.source(msg));
+        printf("Sending linkresponse to: %i \n", call AMPacket.source(msg));
         printfflush();
+        
+        resendBool=TRUE;
+        
         if (call AMSend.send(call AMPacket.source(msg), &pkt,
                              sizeof(LinkResponse)) == SUCCESS) {
           busy = TRUE;
           printf("Sent \n");
+        }else{
+          //Keep sending untill success
+          sourceToSendTo=call AMPacket.source(msg);
+          call RetryTimer.startOneShot(10);
         }
       //}
 
@@ -209,7 +246,7 @@ initList();
 	  }
 	 
 
-      if ((1 + lastDataId) != receivedId && receivedId>lastDataId) {
+      if ((1 + lastDataId) != receivedId && receivedId>lastDataId&& !firstDataReceive) {
         // Missed packages, use NAK
         int missing = (receivedId - lastDataId);
         int i;
@@ -231,7 +268,7 @@ initList();
         firstDataReceive=FALSE;			
         lastDataId = receivedId;
 		}
-        printf("Got data, temperature is: %i Message_ID is: %i message from: %i\n ", data->data_part,data->message_id,call AMPacket.source(msg));
+        printf("Got data, temperature is: %i Message_ID is: %i message from: %i\n", data->data_part,data->message_id,call AMPacket.source(msg));
       }
 	  
 	  

@@ -11,7 +11,8 @@
    components new AMSenderC(AM_BLINKTORADIO);
    components new AMReceiverC(AM_BLINKTORADIO);
    components CC2420ActiveMessageC;
-   components new TimerMilliC();
+   components new TimerMilliC() as MilliTimer;
+   components new TimerMilliC() as Timer2;
 
    App -> CC2420ActiveMessageC.CC2420Packet;
    App.LowPowerListening -> CC2420ActiveMessageC;
@@ -22,6 +23,7 @@
    App.Boot -> MainC;
    App.Leds -> LedsC;
    App.Receive -> AMReceiverC;
-   App.MilliTimer -> TimerMilliC;
+   App.MilliTimer -> MilliTimer;
+   App.Timer2 -> Timer2;
  }
  
