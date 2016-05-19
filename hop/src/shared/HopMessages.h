@@ -15,7 +15,7 @@ typedef nx_struct LinkResponse {
   nx_uint16_t message_type;
   nx_uint16_t message_id;
   nx_uint16_t lqi;
-  nx_uint16_t rssi;
+  nx_int16_t rssi;
 }
 LinkResponse;
 
@@ -33,7 +33,7 @@ typedef nx_struct Retransmission {
   nx_uint16_t message_type;
   nx_uint16_t message_id;
   nx_uint16_t lqi;
-  nx_uint16_t rssi;
+  nx_int16_t rssi;
 }
 Retransmission;
 
