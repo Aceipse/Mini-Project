@@ -1,4 +1,5 @@
 #include "../shared/HopMessages.h"
+#include "ewma.h"
 #include "TransmissionObj.h"
 #include "printf.h"
 #include <stdio.h>
@@ -6,12 +7,6 @@
 // Power debug
 #define POWER 3
 #define TIMER_MS 1000
-
-// EWMA
-// how much the current value should count (1-LAMBDA is history)
-#define LAMBDA 0.3
-// how much history to consider
-#define WIDTH 4
 
 module PowerC {
   uses interface Boot;
@@ -35,47 +30,41 @@ implementation {
   bool TURN_ON_RADIO = FALSE;
   bool EWMA_DEBUG = TRUE;
 
+  struct EwmaObj ewma1;
+  struct EwmaObj ewma2;
+  
+  int testData = 1;
+  int integerPrint = -1;  //because we cant print double
+
+  /*
   // EWMA begin
   // see example http://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm
-  double test_data[21] = {52.0, 47.0, 53.0, 49.3, 50.1, 47.0, 51.0,
-                          50.1, 51.2, 50.5, 49.6, 47.6, 49.9, 51.3,
-                          47.8, 51.2, 52.6, 52.4, 53.6, 52.1};
-  double test_cmp[21] = {50.00, 50.60, 49.52, 50.56, 50.18, 50.16, 49.21,
-                         49.75, 49.85, 50.26, 50.33, 50.11, 49.36, 49.52,
-                         50.05, 49.38, 49.92, 50.73, 51.23, 51.94, 51.99};
-  int testIdx = 0;
-
-  int ewmaArr[WIDTH]; // todo initate with something sensible
-  int ewma_i = 0;
+  int ewmaIdx = 0;
   double ewma = 0;
-
+  double ewmaHis = 0;
   double ewmaVal(double cur) {
-    // Historical average
-    double avg = 0;
-    for (i = 0; i < WIDTH; i++) {
-      avg += ewmaArr[i];
-    }
-    avg /= WIDTH;
+    ewma = LAMBDA * cur + (1 - LAMBDA) * ewmaHis;
+    ewmaHis = ewma;
 
-    ewma = LAMBDA * cur + (1 - LAMBDA) * avg;
-    ewmaArr[ewma_i] = ewma; //or cur?
-    
-    ewma_i = (ewma_i + 1) % WIDTH;
-
-    // Return EWMA value
+    ewmaIdx = (ewmaIdx + 1) % WIDTH;
     return ewma;
   }
   // EWMA end
+  */
 
   event void Boot.booted() {
     call CC2420Packet.setPower(&pkt, POWER);
 
-    for (i = 0; i < WIDTH; i++) {
-      ewmaArr[i] = 50; // init with something sensible
-    }
-
-    if (!TURN_ON_RADIO) {
+    // Initiate with sensible, or average over some values
+    ewma1.his = 50;
+    ewma1.cur = 0;
+    
+    ewma2.his = 50;
+    ewma2.cur = 0;
+    
+    if (!TURN_ON_RADIO && (SEND || RECEIVE)) {
       call AMControl.start();
+
     } else {
       call Timer0.startPeriodic(TIMER_MS);
     }
@@ -103,12 +92,12 @@ implementation {
 
   event void Timer0.fired() {
     /*printf("Size of message_t %i\n", sizeof(pkt));
-    printf("Size of bool %i\n", sizeof(busy));*/
+printf("Size of bool %i\n", sizeof(busy));*/
     if (SEND) {
       // Also listening
       if (!busy) {
-        LinkRequest *qu =
-            (LinkRequest *)(call Packet.getPayload(&pkt, sizeof(LinkRequest)));
+        LinkRequest* qu =
+            (LinkRequest*)(call Packet.getPayload(&pkt, sizeof(LinkRequest)));
         qu->message_id = 1;
         if (call AMSend.send(AM_BROADCAST_ADDR, &pkt, sizeof(LinkRequest)) ==
             SUCCESS) {
@@ -128,26 +117,30 @@ implementation {
       // Power usage after start?
     }
     if (EWMA_DEBUG) {
-      double dCur = test_data[testIdx];
-      int iCur = dCur * 100;
-
-      double dEmwa = ewmaVal(dCur);
-      int iEmwa = dEmwa * 100; // retain two decimals
-
-      int iCmp = test_cmp[testIdx] * 100;
-      testIdx = (testIdx + 1) % 21;
-
-      printf("TestIdx %i\n", testIdx);
-      printf("Current value is %i and EMWA value is %i. Diff %i\n", iCur, iEmwa,
-             (iCur - iEmwa));
-      printf("Diff my EMWA and book %i\n\n",
-             (iEmwa - iCmp)); // only makes sense up till testIdx = 20
+      
+      testData = testData == 1 ? 2 : 1;
+      printf("testData %i\n", testData);
+      ewmaVal(&ewma1, testData);      
+      integerPrint = ewma1.cur * 100;
+      printf("ewma1 cur %i\n\n", integerPrint);
 
       printfflush();
+
+      /*double dCur = ewmaIdx % 2 == 0 ? -4 : 5;
+      int iCur = dCur * 1;
+
+      double dEmwa = ewmaVal(dCur);
+      int iEmwa = dEmwa * 1;  // retain two decimals
+
+      printf("ewmaIdx %i\n", ewmaIdx);
+      printf("Current value is %i and EMWA value is %i. Diff %i\n", iCur, iEmwa,
+             (iCur - iEmwa));
+
+      printfflush();*/
     }
   }
 
-  event message_t *Receive.receive(message_t * msg, void *payload,
+  event message_t* Receive.receive(message_t * msg, void* payload,
                                    uint8_t len) {
     printf("Receive data\n");
     printfflush();
