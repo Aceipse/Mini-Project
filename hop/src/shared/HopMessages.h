@@ -37,6 +37,7 @@ typedef nx_struct Retransmission {
 }
 Retransmission;
 
+//BaseMessage
 typedef nx_struct BaseMessage{
   nx_uint16_t message_type;
 } BaseMessage;
