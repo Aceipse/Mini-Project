@@ -4,7 +4,7 @@
 #include "../shared/Shared.h"
 #include "../shared/HopMessages.h"
  
-  module RelayNodeC {
+ module RelayNodeC {
    uses interface Boot;
    uses interface Leds;
    uses interface Packet;
@@ -15,29 +15,31 @@
    uses interface CC2420Packet;
    uses interface LowPowerListening;
    uses interface Timer<TMilli> as MilliTimer;
+   uses interface Timer<TMilli> as Timer2;
 
  }
  implementation {
    bool busy = FALSE;
    message_t pkt;
    uint16_t lqi = 0;
-   uint16_t rssi = 0;
+   int16_t rssi = 0;
    uint16_t counter = 0;
+   uint16_t messageCounter = 0;
+   uint16_t currentCounter = 0;
  
    event void Boot.booted() {
     call AMControl.start();
-    call CC2420Packet.setPower(&pkt,3);
-    call LowPowerListening.setLocalWakeupInterval(250);
+    call CC2420Packet.setPower(&pkt,POWERSETTING);
   }
 
    event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
     }
     else {
-      call AMControl.start();
+      //call AMControl.start();
     }
     
-    call MilliTimer.startPeriodic(5000);
+    call MilliTimer.startPeriodic(REQUEST_PERIOD_MILLI * 3);
   }
 
   event void AMControl.stopDone(error_t err) {
@@ -48,19 +50,29 @@
     if (&pkt == msg) {
       busy = FALSE;
     }
+    if(error != SUCCESS)
+    {
+    	printf("ERROR HAPPENED \n");
+    	printfflush();
+    }
   }
  
  event void MilliTimer.fired()
   {
-  	counter++;
-//  	if(counter % 2 == 1)
-//  	{
-//  		call AMControl.stop();
-//  	}
-//  	else
-//  	{
-//  		call AMControl.start();	
-//  	}
+  	printf("Listen for handshake \n");
+  	printfflush();
+  	call MilliTimer.stop();
+  	call AMControl.start();
+  	call Timer2.startPeriodic((REQUEST_PERIOD_MILLI + FIGHT_PERIOD_MILLI + TIMER_PERIOD_MILLI) * 1.2);
+  }
+ 
+ event void Timer2.fired()
+  {
+  	printf("Sleep \n");
+  	printfflush();
+  	call Timer2.stop();
+  	call AMControl.stop();
+  	call MilliTimer.startPeriodic(REQUEST_PERIOD_MILLI * 3);
   }
   
   void HandshakeFromSource(message_t* msg, void* payload)
@@ -74,33 +86,39 @@
     printf("Senderid: %i \n", call AMPacket.source(msg));
     printfflush();
 		
-	if (!busy) 
+	if (TRUE) 
 	{
 		LinkRequest* sendpkt = (LinkRequest*)(call Packet.getPayload(&pkt, sizeof (LinkRequest)));
 		sendpkt->message_id= btrpkt->message_id;
 		sendpkt->message_type= LinkRequestId;
 		if (call AMSend.send(AM_NODEC, &pkt, sizeof(LinkRequest)) == SUCCESS) 
-		{busy = TRUE;}
+		{busy = TRUE; printf("Nu er vi her \n"); printfflush();}
 	}
   }
   
   void HandshakeFromSink(message_t* msg, void* payload)
   {
   	LinkResponse* btrpkt = (LinkResponse*)payload;
-  	int lrssi = (btrpkt->rssi + rssi) / 2;
-  	int llqi = (btrpkt->lqi + lqi) / 2;
+  	int16_t lrssi;
+  	
+  	// Finding the worst rssi
+  	if(btrpkt->rssi > rssi)
+  	{lrssi = rssi;}
+  	else {lrssi = btrpkt->rssi;}
+  	
+  	//uint16_t llqi = (btrpkt->lqi + lqi) / 2;
   	
   	printf("%i Linkresponse from sink \n", btrpkt->message_id);
-    printf("rssi: %i \n", lrssi);
-    printf("lqi: %i \n", llqi);
+    printf("rssi1: %i rssi2: %i \n", btrpkt->rssi, rssi);
+    printf("lqi: %i \n", lqi);
 	printfflush();
 		
-	if (!busy) 
+	if (TRUE) 
 	{
 		LinkResponse* sendpkt = (LinkResponse*)(call Packet.getPayload(&pkt, sizeof (LinkResponse)));
 		sendpkt->message_id= btrpkt->message_id;
 		sendpkt->message_type= LinkResponseId;
-		sendpkt->lqi = llqi;
+		sendpkt->lqi = lqi;
 		sendpkt->rssi = lrssi;
 		if (call AMSend.send(AM_NODEA, &pkt, sizeof(LinkResponse)) == SUCCESS) 
 		{busy = TRUE;}
@@ -110,6 +128,9 @@
   void SendData(message_t* msg, void* payload)
   {
   	DataSend* btrpkt = (DataSend*)payload;
+  	call Timer2.stop();
+  	//Message * 1.5
+  	call Timer2.startOneShot(TIMER_PERIOD_MILLI * 10);
   	printf("%i Send data to sink \n", btrpkt->message_id);
 	printfflush();
 		
@@ -128,8 +149,8 @@
   void Retransmit(message_t* msg, void* payload)
   {
   	Retransmission* btrpkt = (Retransmission*)payload;
-  	int lrssi = call CC2420Packet.getRssi(msg);
-	int llqi = call CC2420Packet.getLqi(msg);
+  	uint16_t lrssi = call CC2420Packet.getRssi(msg);
+	uint16_t llqi = call CC2420Packet.getLqi(msg);
 	
   	printf("Retransmit package: %i \n", btrpkt->message_id);
 	printfflush();
