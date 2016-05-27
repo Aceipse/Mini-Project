@@ -30,7 +30,6 @@ implementation {
 	uint16_t counterHand = 0;
 	uint16_t counterData = 0;
 	uint16_t fightId = 0;
-	int16_t fightRssi = -250;
 	uint16_t sendToId = 0;
 	
 	bool requestFromB = FALSE;
@@ -73,7 +72,6 @@ implementation {
 
    	event void TimerBetweenLinkReqs.fired() {
 		fightId = 0;
-		fightRssi = -250;
 		requestFromB = FALSE;
 		requestFromC = FALSE;
 		call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
@@ -109,25 +107,30 @@ implementation {
 		} 
 		else if(requestFromB) {
 			fightId = AM_NODEB;
+		}  
+		else if(requestFromC) {
+			fightId = AM_NODEC;
 		} 
 		
 		if(fightId != 0){
 			sendToId = fightId;
 			
-			printf("EWMA B: %i C: %i, Retra: %i \n", (int)(100*ewmaB.cur), (int)(100*ewmaC.cur), (int)(100*ewmaRetrans.cur));
-			printf("END ----------- Mote %i is new endpoint ! \n", sendToId);
+			printf("LINK.RESULT..... B: %i C: %i, Retra: %i \n", (int)(100*ewmaB.cur), (int)(100*ewmaC.cur), (int)(100*ewmaRetrans.cur));
+			printf("LINK............ Mote %i is new endpoint ! \n", sendToId);
 			printfflush();
 			
 			//TO START DATA
 			if(!(call TimerDataSend.isRunning())){
 				call TimerDataSend.startPeriodic(TIMER_PERIOD_MILLI);
-			    printf("STARTED DATA !");
+			    printf("DATA............ STARTED DATA \n!");
 				printfflush();	
 			}
 		}
 		//NO FOUND, STOP DATA 
 		else if(call TimerDataSend.isRunning()) {
 			call TimerDataSend.stop();
+			printf("DATA............ STOPPED DATA \n!");
+			printfflush();	
 		}
 	}
 	
@@ -166,7 +169,6 @@ implementation {
 	  	 
 	  	 if(!(call TimerLinkChoosen.isRunning())){
 			fightId = 0;
-			fightRssi = -250;
 			requestFromB = FALSE;
 			requestFromC = FALSE;
 			call TimerLinkChoosen.startOneShot(FIGHT_PERIOD_MILLI);
@@ -190,7 +192,7 @@ implementation {
 			ewmaVal(&ewmaC, (btrpkt->rssi));
 		 }
 		 
-		 printf("Retransmission from mote %i, LQI: %i RSSI: %i\n", call AMPacket.source(msg), btrpkt->lqi, btrpkt->rssi);
+		 printf("DATA............ Retransmission from mote %i, RSSI: %i\n", call AMPacket.source(msg), btrpkt->rssi);
  	 	 	  	 
 	  	 if (!busy) {
    			DataSend* qu = (DataSend*)(call Packet.getPayload(&pkt, sizeof (DataSend)));
@@ -208,7 +210,7 @@ implementation {
 	  if (bm->message_type == LinkResponseId) {
 	    LinkResponse* lrPayload = (LinkResponse*)payload;
 	    
-	  	printf("LinkResponse from: %i, LQI: %i RSSI: %i\n", call AMPacket.source(msg), lrPayload->lqi,lrPayload->rssi);
+	  	printf("LINK.RESPONSE... from mote %i, RSSI: %i\n", call AMPacket.source(msg),lrPayload->rssi);
 		printfflush();
 		
 		if((call AMPacket.source(msg)) == AM_NODEB) {

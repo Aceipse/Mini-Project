@@ -1,0 +1,14 @@
+retransmission flow:
+
+c sends =
+b receives
+a receives
+b sends
+c overhears
+a receives
+a sends
+b receives
+c receives
+b sends
+a overhears
+c receives
