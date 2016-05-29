@@ -1,4 +1,4 @@
-function [ energy ] = comparingRelay(interval, rate, retransmissions, relay)
+function [ energy ] = comparingRelay(inter, prate, retransmissions, relay)
 
 %Power usages (W)
 p_send = 0.049;
@@ -28,8 +28,8 @@ e_send_sys = 1*t_send*p_send + 1*t_receive*p_receive;
 
 %Considering a specific interval in seconds with rate packages pr. second
 %START configure
-interval = interval;
-rate = rate;
+interval = inter;
+rate = prate;
 
 % percentage retransmissions e.g. 0.2 = 20 % retransmissions of total amount of packages
 re_relay = retransmissions; 
@@ -54,6 +54,8 @@ if(t_relay_sys_idle < 0)
     %doing the operations will take longer than interval, but we only
     %consider energy spent.
     t_relay_sys_idle = 0;
+    msg = ['Too many retransmissions for interval. retransmissions value is', num2str(re_relay)];
+    disp(msg)
 end
 e_relay_sys = t_relay_sys_idle*p_receive_idle + e_send_relay_sys*num_packages + e_retrans_relay_sys*num_relay_retrans;
 
@@ -61,6 +63,8 @@ e_relay_sys = t_relay_sys_idle*p_receive_idle + e_send_relay_sys*num_packages + 
 t_sys_idle = num_motes*interval - t_send_sys*num_packages - t_retrans_sys*num_retrans;
 if(t_sys_idle < 0)
     t_sys_idle = 0;
+    msg = ['Too many retransmissions for interval. retransmissions value is', num2str(re)];
+    disp(msg)
 end
 e_sys = t_sys_idle*p_receive_idle + e_send_sys*num_packages + e_retrans_sys*num_retrans + interval*p_radio_off;
 
