@@ -1,3 +1,4 @@
+R_shunt = 10;
 U_battery = 2.7;
 t_0_recive_Idle = 1;
 U_shunt_recive_Idle = 202 * 10^-3;
