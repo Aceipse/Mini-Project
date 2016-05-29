@@ -2,7 +2,7 @@ addpath('../math/');
 format compact
 format shortEng
 
-inte = 3600;
+interval = 3600;
 rate = 5; %pr. second
 
 n = 20;
@@ -10,10 +10,10 @@ inc = 0.1;
 y1 = [];
 y2 = [];
 for x = 0:inc:n
-    y1(end+1) = comparingRelay(inte, rate, x, false);
+    y1(end+1) = comparingRelay(interval, rate, x, false);
     %change 0 to e.g. x/5 to model relay removes need for retransmission by
     %factor 5 compared to no relay
-    y2(end+1) = comparingRelay(inte, rate, 0, true);
+    y2(end+1) = comparingRelay(interval, rate, 0, true);
 end
 
 y1 = y1'
