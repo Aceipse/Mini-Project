@@ -2,7 +2,7 @@ addpath('../math/');
 format compact
 format shortEng
 
-interval = 3600;
+interval = 1000;
 rate = 5; %pr. second
 
 n = 20;

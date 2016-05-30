@@ -4,7 +4,7 @@ function [ energy ] = comparingRelay(inter, prate, retransmissions, relay)
 p_send = 0.049;
 p_receive = 0.054;
 p_receive_idle = 0.051;
-p_overhear = 0.051;
+p_overhear = 0.0525;
 p_radio_off = 0.0004;
 
 %Time usages (s)
