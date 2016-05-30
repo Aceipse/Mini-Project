@@ -1,4 +1,4 @@
-function [ energy ] = comparingRelay(inter, prate, retransmissions, relay)
+function [ energy ] = comparingRelay(inter, prate, retransmissions, relay, poweroff)
 
 %Power usages (W)
 p_send = 0.049;
@@ -48,25 +48,31 @@ num_retrans = num_packages*re;              %number of retransmissions wihtout r
 num_motes_relay = 3;
 num_motes = 2;
 
+idle_power = 0;
+if (poweroff)
+    idle_power = p_radio_off;
+else
+    idle_power = p_receive_idle;
+end
+
 %RELAY
 t_relay_sys_idle = num_motes_relay*interval - t_send_relay_sys*num_packages - t_retrans_relay_sys*num_relay_retrans;
 if(t_relay_sys_idle < 0)
-    %doing the operations will take longer than interval, but we only
-    %consider energy spent.
+    %doing the operations will take longer than interval
     t_relay_sys_idle = 0;
-    msg = ['Too many retransmissions for interval. retransmissions value is', num2str(re_relay)];
-    disp(msg)
+    %msg = ['Too many retransmissions for interval. retransmissions value is', num2str(re_relay)];
+    %disp(msg)
 end
-e_relay_sys = t_relay_sys_idle*p_receive_idle + e_send_relay_sys*num_packages + e_retrans_relay_sys*num_relay_retrans;
+e_relay_sys = t_relay_sys_idle*idle_power + e_send_relay_sys*num_packages + e_retrans_relay_sys*num_relay_retrans;
 
 %NO RELAY (relay is asleep)
 t_sys_idle = num_motes*interval - t_send_sys*num_packages - t_retrans_sys*num_retrans;
 if(t_sys_idle < 0)
     t_sys_idle = 0;
-    msg = ['Too many retransmissions for interval. retransmissions value is', num2str(re)];
-    disp(msg)
+    %msg = ['Too many retransmissions for interval. retransmissions value is', num2str(re)];
+    %disp(msg)
 end
-e_sys = t_sys_idle*p_receive_idle + e_send_sys*num_packages + e_retrans_sys*num_retrans + interval*p_radio_off;
+e_sys = t_sys_idle*idle_power + e_send_sys*num_packages + e_retrans_sys*num_retrans + interval*p_radio_off;
 
 if(relay)
     energy=e_relay_sys;
